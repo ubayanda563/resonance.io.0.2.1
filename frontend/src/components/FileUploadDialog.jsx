@@ -83,9 +83,28 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
       onLocalPlay(track);
     }
 
+    if (typeof onClose === 'function') {
+      onClose();
+    }
+
     if (localFileInputRef.current) {
       localFileInputRef.current.value = null;
     }
+
+    window.requestAnimationFrame(() => {
+      if (localFileInputRef.current) {
+        localFileInputRef.current.blur();
+      }
+      if (typeof document !== 'undefined') {
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+        document.body.style.overflow = '';
+      }
+      if (typeof window !== 'undefined' && typeof window.focus === 'function') {
+        window.focus();
+      }
+    });
   };
 
   const handleFileUpload = async (files) => {
@@ -141,10 +160,10 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md bg-gray-900 border-gray-700">
+      <DialogContent className="max-w-md glass-card-dark border-white/10 shadow-2xl shadow-black/30">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
-            <Music className="text-blue-400" size={20} />
+            <Music className="text-cyan-400" size={20} />
             Upload Music Files
           </DialogTitle>
         </DialogHeader>
@@ -152,18 +171,18 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
         <div className="space-y-4">
           {!isUploading && uploadedFiles.length === 0 && (
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              className={`glass-dark border-2 border-dashed rounded-3xl p-8 text-center transition-colors ${
                 isDragging
-                  ? 'border-blue-400 bg-blue-400/10'
-                  : 'border-gray-600 hover:border-gray-500'
+                  ? 'border-white/30 bg-white/10 shadow-glow'
+                  : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              <Upload className="mx-auto mb-4 text-gray-400" size={48} />
+              <Upload className="mx-auto mb-4 text-slate-300" size={48} />
               <p className="text-white mb-2">Drag & drop audio files here</p>
-              <p className="text-gray-400 text-sm mb-4">
+              <p className="text-slate-400 text-sm mb-4">
                 Supports MP3, FLAC, M4A, AAC, OGG, WAV
               </p>
               <input
@@ -172,6 +191,8 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
                 multiple
                 onChange={handleFileSelect}
                 className="hidden"
+                tabIndex={-1}
+                aria-hidden="true"
                 id="file-upload"
               />
               <input
@@ -180,12 +201,14 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
                 accept="audio/*"
                 onChange={handleLocalFileSelect}
                 className="hidden"
+                tabIndex={-1}
+                aria-hidden="true"
                 id="local-file-upload"
               />
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button
                   asChild
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="glass-button text-white"
                 >
                   <label htmlFor="file-upload" className="cursor-pointer">
                     Choose Files
@@ -194,14 +217,14 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
                 <Button
                   asChild
                   variant="outline"
-                  className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                  className="glass-button-dark text-white"
                 >
                   <label htmlFor="local-file-upload" className="cursor-pointer">
                     Play Locally
                   </label>
                 </Button>
               </div>
-              <p className="text-gray-400 text-sm mt-4">
+              <p className="text-slate-400 text-sm mt-4">
                 Supports browser-playable audio formats. Local playback works immediately without upload.
               </p>
             </div>
@@ -209,10 +232,10 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
 
           {isUploading && (
             <div className="space-y-4">
-              <div className="text-center">
+              <div className="text-center glass-dark rounded-3xl p-6">
                 <p className="text-white mb-2">Uploading files...</p>
                 <Progress value={uploadProgress} className="w-full" />
-                <p className="text-gray-400 text-sm mt-1">{uploadProgress}%</p>
+                <p className="text-slate-400 text-sm mt-1">{uploadProgress}%</p>
               </div>
             </div>
           )}
@@ -223,10 +246,10 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
               {uploadedFiles.map((result, index) => (
                 <div
                   key={index}
-                  className={`flex items-center gap-2 p-2 rounded text-sm ${
+                  className={`flex items-center gap-2 p-3 rounded-3xl text-sm glass-dark ${
                     result.status === 'success'
-                      ? 'bg-green-900/20 text-green-400'
-                      : 'bg-red-900/20 text-red-400'
+                      ? 'text-emerald-200'
+                      : 'text-rose-200'
                   }`}
                 >
                   {result.status === 'success' ? (
@@ -250,7 +273,7 @@ const FileUploadDialog = ({ isOpen, onClose, onUploadComplete, onLocalPlay }) =>
               variant="outline"
               onClick={handleClose}
               disabled={isUploading}
-              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              className="glass-button-dark text-white"
             >
               {uploadedFiles.length > 0 ? 'Close' : 'Cancel'}
             </Button>

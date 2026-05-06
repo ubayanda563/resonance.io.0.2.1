@@ -75,10 +75,10 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-gray-900 border-gray-700 max-h-[80vh]">
+      <DialogContent className="max-w-2xl glass-card-dark border-white/10 max-h-[80vh] shadow-2xl shadow-black/30">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
-            <Search className="text-red-500" size={20} />
+            <Search className="text-fuchsia-400" size={20} />
             Search YouTube Music
           </DialogTitle>
         </DialogHeader>
@@ -91,12 +91,12 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+              className="flex-1 glass-input text-white placeholder:text-slate-400"
             />
             <Button
               onClick={handleSearch}
               disabled={isSearching || !searchQuery.trim()}
-              className="bg-red-600 hover:bg-red-700"
+              className="glass-button text-white"
             >
               {isSearching ? (
                 <Loader2 className="animate-spin" size={16} />
@@ -111,7 +111,7 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
             {searchResults.map((result) => (
               <div
                 key={result.id}
-                className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors"
+                className="flex items-center gap-3 p-4 glass-dark rounded-3xl hover:glass-surface-dark transition-all"
               >
                 {/* Thumbnail */}
                 <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
@@ -127,10 +127,10 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
                   <h4 className="text-white font-medium text-sm truncate">
                     {result.title}
                   </h4>
-                  <p className="text-gray-400 text-xs truncate">
+                  <p className="text-slate-300 text-xs truncate">
                     {result.artist}
                   </p>
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-slate-400 text-xs">
                     {formatDuration(result.duration)}
                   </p>
                 </div>
@@ -141,7 +141,7 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
                     size="sm"
                     variant="outline"
                     onClick={() => window.open(result.url, '_blank')}
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    className="glass-button-dark text-white"
                   >
                     <Play size={14} />
                   </Button>
@@ -149,7 +149,7 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
                     size="sm"
                     onClick={() => handleAddTrack(result)}
                     disabled={addingTracks.has(result.id)}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="glass-button text-white"
                   >
                     {addingTracks.has(result.id) ? (
                       <Loader2 className="animate-spin" size={14} />
@@ -162,8 +162,8 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
             ))}
 
             {searchResults.length === 0 && searchQuery && !isSearching && (
-              <div className="text-center py-8 text-gray-400">
-                <Search size={48} className="mx-auto mb-2 opacity-50" />
+              <div className="text-center py-8 text-slate-400 glass-dark rounded-3xl">
+                <Search size={48} className="mx-auto mb-2 opacity-60 text-slate-400" />
                 <p>No results found for "{searchQuery}"</p>
                 <p className="text-sm">Try different keywords</p>
               </div>
@@ -171,11 +171,11 @@ const YouTubeSearch = ({ isOpen, onClose, onTrackSelect }) => {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end pt-4 border-t border-gray-700">
+          <div className="flex justify-end pt-4 border-t border-white/10">
             <Button
               variant="outline"
               onClick={handleClose}
-              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              className="glass-button-dark text-white"
             >
               Close
             </Button>

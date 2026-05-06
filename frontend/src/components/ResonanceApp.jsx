@@ -38,9 +38,22 @@ import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Switch } from './ui/switch';
+
+const HOME_MODULE_DEFAULTS = [
+  { id: 'nowPlaying', label: 'Now Playing', enabled: true },
+  { id: 'recentlyPlayed', label: 'Recently Played', enabled: true },
+  { id: 'genres', label: 'Browse Genres', enabled: true },
+  { id: 'queuePreview', label: 'Queue Preview', enabled: true },
+];
+
+const VIEW_ORDER = ['home', 'search', 'library'];
 
 const ResonanceApp = () => {
   const [currentView, setCurrentView] = useState('home');
+  const [transitionDirection, setTransitionDirection] = useState('fade');
+  const [swipeStartX, setSwipeStartX] = useState(null);
   const [isFullPlayer, setIsFullPlayer] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [githubAvatar, setGithubAvatar] = useState('');
@@ -48,6 +61,18 @@ const ResonanceApp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showYouTubeSearch, setShowYouTubeSearch] = useState(false);
+  const [showHomeSettings, setShowHomeSettings] = useState(false);
+  const [homeModules, setHomeModules] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('resonanceHomeModules');
+        return stored ? JSON.parse(stored) : HOME_MODULE_DEFAULTS;
+      } catch {
+        return HOME_MODULE_DEFAULTS;
+      }
+    }
+    return HOME_MODULE_DEFAULTS;
+  });
   const { toast } = useToast();
 
   // Audio player hook
@@ -117,6 +142,57 @@ const ResonanceApp = () => {
     setRecentTracks(prev => [track, ...prev].slice(0, 20));
     playTrack(track);
     setShowUploadDialog(false);
+  };
+
+  const saveHomeModules = (nextModules) => {
+    setHomeModules(nextModules);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('resonanceHomeModules', JSON.stringify(nextModules));
+    }
+  };
+
+  const toggleHomeModule = (moduleId) => {
+    saveHomeModules(homeModules.map((module) => module.id === moduleId ? { ...module, enabled: !module.enabled } : module));
+  };
+
+  const moveHomeModule = (index, direction) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= homeModules.length) return;
+    const reordered = [...homeModules];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(nextIndex, 0, moved);
+    saveHomeModules(reordered);
+  };
+
+  const changeView = (view) => {
+    if (view === currentView) return;
+    const currentIndex = VIEW_ORDER.indexOf(currentView);
+    const nextIndex = VIEW_ORDER.indexOf(view);
+    setTransitionDirection(nextIndex > currentIndex ? 'left' : 'right');
+    setCurrentView(view);
+  };
+
+  const handleSwipeStart = (event) => {
+    setSwipeStartX(event.touches?.[0]?.clientX ?? null);
+  };
+
+  const handleSwipeEnd = (event) => {
+    if (swipeStartX === null) return;
+    const endX = event.changedTouches?.[0]?.clientX ?? null;
+    if (endX === null) {
+      setSwipeStartX(null);
+      return;
+    }
+    const diff = endX - swipeStartX;
+    if (Math.abs(diff) > 60) {
+      const currentIndex = VIEW_ORDER.indexOf(currentView);
+      if (diff < 0 && currentIndex < VIEW_ORDER.length - 1) {
+        changeView(VIEW_ORDER[currentIndex + 1]);
+      } else if (diff > 0 && currentIndex > 0) {
+        changeView(VIEW_ORDER[currentIndex - 1]);
+      }
+    }
+    setSwipeStartX(null);
   };
 
   const handleYouTubeTrackSelect = (track) => {
@@ -398,11 +474,11 @@ const ResonanceApp = () => {
           <h1 className="text-4xl font-semibold text-white">Search artists, songs, and playlists</h1>
           <div className="max-w-2xl">
             <div className="relative">
-              <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="What do you want to listen to?"
-                className="glass-input w-full py-4 pl-14 pr-4 rounded-2xl font-medium"
+                className="glass-input w-full py-4 pl-14 pr-4 rounded-2xl font-medium text-white"
               />
             </div>
           </div>
@@ -412,7 +488,7 @@ const ResonanceApp = () => {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-white">Browse Genres</h2>
-              <p className="text-slate-500">Find playlists, moods, and trends curated for you.</p>
+              <p className="text-slate-400">Find playlists, moods, and trends curated for you.</p>
             </div>
             <Button variant="ghost" className="text-slate-300 hover:text-white">More</Button>
           </div>
@@ -426,7 +502,7 @@ const ResonanceApp = () => {
               { title: "Classical", color: "from-green-500 to-emerald-500" },
               { title: "Electronic", color: "from-yellow-500 to-orange-500" }
             ].map((genre, idx) => (
-              <div key={idx} className={`overflow-hidden rounded-3xl bg-gradient-to-br ${genre.color} shadow-xl shadow-black/30 transition hover:shadow-2xl hover:-translate-y-1 p-5 h-28 flex items-end cursor-pointer group`}>
+              <div key={idx} className={`overflow-hidden rounded-3xl bg-gradient-to-br ${genre.color} shadow-xl shadow-black/30 transition hover:shadow-2xl hover:-translate-y-1 p-5 h-28 flex items-end cursor-pointer group glass-card`}> 
                 <h3 className="text-white font-semibold text-lg group-hover:scale-105 transition-transform">{genre.title}</h3>
               </div>
             ))}
@@ -662,12 +738,12 @@ const ResonanceApp = () => {
   );
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white flex">
+    <div className="h-screen bg-slate-950 text-white flex overflow-hidden">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
         {/* Header */}
         <div className="glass-surface-dark p-6 border-b border-white/15">
           <div className="flex items-center justify-between">
@@ -676,7 +752,7 @@ const ResonanceApp = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="text-gray-400 hover:text-white"
+                className="text-slate-400 hover:text-white"
               >
                 <Menu size={20} />
               </Button>
@@ -685,7 +761,7 @@ const ResonanceApp = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => window.history.back()}
-                  className="text-gray-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
                 >
                   <ArrowLeft size={16} />
                 </Button>
@@ -693,7 +769,7 @@ const ResonanceApp = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => window.history.forward()}
-                  className="text-gray-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
                 >
                   <ChevronRight size={16} />
                 </Button>
@@ -704,16 +780,18 @@ const ResonanceApp = () => {
                 Upgrade
               </Button>
               <div className="w-8 h-8 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center ring-1 ring-white/20">
-                <User size={16} className="text-gray-300" />
+                <User size={16} className="text-slate-300" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Content Area */}
-        {currentView === 'home' && <HomeView />}
-        {currentView === 'search' && <SearchView />}
-        {currentView === 'library' && <LibraryView />}
+        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden view-transition-${transitionDirection}`}>
+          {currentView === 'home' && <HomeView />}
+          {currentView === 'search' && <SearchView />}
+          {currentView === 'library' && <LibraryView />}
+        </div>
 
         {/* Bottom Player Bar */}
         {currentTrack && <BottomPlayerBar />}
@@ -736,6 +814,90 @@ const ResonanceApp = () => {
         onClose={() => setShowYouTubeSearch(false)}
         onTrackSelect={handleYouTubeTrackSelect}
       />
+
+      {/* Home Settings Dialog */}
+      <Dialog open={showHomeSettings} onOpenChange={setShowHomeSettings}>
+        <DialogContent className="glass-card border-white/20 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Customize Home Screen</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Toggle and reorder the sections that appear on your home screen.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {homeModules.map((module, index) => (
+              <div key={module.id} className="flex items-center justify-between p-3 glass-surface rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    checked={module.enabled}
+                    onCheckedChange={(checked) => {
+                      const newModules = [...homeModules];
+                      newModules[index] = { ...newModules[index], enabled: checked };
+                      setHomeModules(newModules);
+                      localStorage.setItem('resonanceHomeModules', JSON.stringify(newModules));
+                    }}
+                  />
+                  <span className={`text-sm font-medium ${module.enabled ? 'text-white' : 'text-white/50'}`}>
+                    {module.label}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (index > 0) {
+                        const newModules = [...homeModules];
+                        [newModules[index - 1], newModules[index]] = [newModules[index], newModules[index - 1]];
+                        setHomeModules(newModules);
+                        localStorage.setItem('resonanceHomeModules', JSON.stringify(newModules));
+                      }
+                    }}
+                    disabled={index === 0}
+                    className="text-white/70 hover:text-white hover:bg-white/10"
+                  >
+                    ↑
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (index < homeModules.length - 1) {
+                        const newModules = [...homeModules];
+                        [newModules[index], newModules[index + 1]] = [newModules[index + 1], newModules[index]];
+                        setHomeModules(newModules);
+                        localStorage.setItem('resonanceHomeModules', JSON.stringify(newModules));
+                      }
+                    }}
+                    disabled={index === homeModules.length - 1}
+                    className="text-white/70 hover:text-white hover:bg-white/10"
+                  >
+                    ↓
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setHomeModules(HOME_MODULE_DEFAULTS);
+                localStorage.setItem('resonanceHomeModules', JSON.stringify(HOME_MODULE_DEFAULTS));
+              }}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Reset to Default
+            </Button>
+            <Button
+              onClick={() => setShowHomeSettings(false)}
+              className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700"
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Toast Notifications */}
       <Toaster />
