@@ -54,6 +54,14 @@ module.exports = {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
+  		backdropBlur: {
+  			xs: '2px',
+  			sm: '4px',
+  			md: '12px',
+  			lg: '16px',
+  			xl: '24px',
+  			'2xl': '40px'
+  		},
   		keyframes: {
   			'accordion-down': {
   				from: {
@@ -70,11 +78,16 @@ module.exports = {
   				to: {
   					height: '0'
   				}
+  			},
+  			'float': {
+  				'0%, 100%': { transform: 'translateY(0px)' },
+  				'50%': { transform: 'translateY(-10px)' }
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'float': 'float 3s ease-in-out infinite'
   		}
   	}
   },

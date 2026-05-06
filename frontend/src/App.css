@@ -10,6 +10,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background-attachment: fixed;
 }
 
 .App {
@@ -17,22 +19,24 @@ body {
   width: 100vw;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar with glass effect */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(10px);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4a5568;
+  background: rgba(148, 163, 184, 0.5);
   border-radius: 4px;
+  backdrop-filter: blur(10px);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: rgba(203, 213, 225, 0.6);
 }
 
 /* Smooth transitions */
@@ -42,11 +46,132 @@ body {
 
 /* Focus styles */
 button:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #7c3aed;
   outline-offset: 2px;
 }
 
 /* Hover effects */
 .hover-scale:hover {
   transform: scale(1.05);
+}
+
+/* Glass effect background gradient */
+.glass-bg {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Smooth glass transitions */
+.glass-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow effect */
+@keyframes glow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(124, 58, 237, 0.8);
+  }
+}
+
+.glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+/* Soft blur background */
+.blur-bg-soft {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Medium blur background */
+.blur-bg-medium {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Heavy blur background */
+.blur-bg-heavy {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Gradient overlay */
+.gradient-overlay {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Enhanced shadows */
+.shadow-glass {
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.shadow-glass-lg {
+  box-shadow: 0 25px 50px 0 rgba(31, 38, 135, 0.5);
+}
+
+/* Light glass surface */
+.glass-light {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dark glass surface */
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Vibrant glass surface */
+.glass-vibrant {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Interactive glass element */
+.glass-interactive {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.glass-interactive:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+/* Smooth focus state */
+.glass-interactive:focus {
+  outline: none;
+  ring: 2px solid rgba(124, 58, 237, 0.5);
+  background: rgba(30, 41, 59, 0.9);
 }
