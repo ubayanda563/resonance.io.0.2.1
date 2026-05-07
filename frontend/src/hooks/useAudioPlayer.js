@@ -244,6 +244,65 @@ export const useAudioPlayer = () => {
     setCurrentIndex(0);
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger shortcuts when typing in input fields
+      if (e.target.matches('input, textarea')) return;
+
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          togglePlayPause();
+          break;
+        case 'ArrowRight':
+        case 'KeyN':
+          if (e.ctrlKey || e.metaKey) return;
+          e.preventDefault();
+          playNext();
+          break;
+        case 'ArrowLeft':
+        case 'KeyP':
+          if (e.ctrlKey || e.metaKey) return;
+          e.preventDefault();
+          playPrevious();
+          break;
+        case 'KeyS':
+          if (e.ctrlKey || e.metaKey) return;
+          e.preventDefault();
+          setShuffle(prev => !prev);
+          break;
+        case 'KeyR':
+          if (e.ctrlKey || e.metaKey) return;
+          e.preventDefault();
+          setRepeat(prev => {
+            if (prev === 'none') return 'playlist';
+            if (prev === 'playlist') return 'track';
+            return 'none';
+          });
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setVolume(prev => Math.min(prev + 5, 100));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          setVolume(prev => Math.max(prev - 5, 0));
+          break;
+        case 'KeyM':
+          if (e.ctrlKey || e.metaKey) return;
+          e.preventDefault();
+          setVolume(prev => (prev > 0 ? 0 : 75));
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlayPause, playNext, playPrevious, setShuffle, setRepeat, setVolume]);
+
   // Format time helpers
   const formatTime = useCallback((seconds) => {
     if (isNaN(seconds)) return '0:00';

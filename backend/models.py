@@ -98,6 +98,34 @@ class UserPreferences(BaseModel):
         }
 
 
+class FavoriteTrack(BaseModel):
+    id: Optional[str] = Field(default=None, alias="_id")
+    track_id: str
+    added_date: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        populate_by_name = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
+
+class SearchQuery(BaseModel):
+    query: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
+
+class SimilarTrackSuggestion(BaseModel):
+    track_id: str
+    similarity_score: float
+    reason: str  # "similar_artist", "similar_genre", "similar_tempo"
+
+
 class YouTubeSearchResult(BaseModel):
     id: str
     title: str

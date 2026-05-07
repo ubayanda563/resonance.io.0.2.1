@@ -26,9 +26,17 @@ import {
   Settings,
   ListMusic,
   Trash2,
+  Flame,
+  Sparkles,
+  Disc3,
+  Mic2,
+  HelpCircle,
 } from 'lucide-react';
-import { trackAPI, handleApiError } from '../services/api';
+import { trackAPI, handleApiError, recommendationsAPI } from '../services/api';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
+import { useSearch } from '../hooks/useSearch';
+import { useFavoritesContext } from '../contexts/FavoritesContext';
+import { usePlaylistContext } from '../contexts/PlaylistContext';
 import FileUploadDialog from './FileUploadDialog';
 import YouTubeSearch from './YouTubeSearch';
 import Toaster from './Toaster';
@@ -58,10 +66,12 @@ const ResonanceApp = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [githubAvatar, setGithubAvatar] = useState('');
   const [recentTracks, setRecentTracks] = useState([]);
+  const [trendingTracks, setTrendingTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showYouTubeSearch, setShowYouTubeSearch] = useState(false);
   const [showHomeSettings, setShowHomeSettings] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [homeModules, setHomeModules] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -74,6 +84,17 @@ const ResonanceApp = () => {
     return HOME_MODULE_DEFAULTS;
   });
   const { toast } = useToast();
+  const { isFavorite, toggleFavorite } = useFavoritesContext();
+  const { playlists, createPlaylist } = usePlaylistContext();
+  const {
+    searchResults,
+    searchHistory,
+    isSearching: isSearching_hook,
+    searchTracks,
+    clearResults,
+    clearSearchHistory,
+    deleteHistoryItem,
+  } = useSearch();
 
   // Audio player hook
   const {
@@ -110,6 +131,7 @@ const ResonanceApp = () => {
   // Load recent tracks
   useEffect(() => {
     loadRecentTracks();
+    loadTrendingTracks();
   }, []);
 
   const loadRecentTracks = async () => {
@@ -129,9 +151,61 @@ const ResonanceApp = () => {
     }
   };
 
+  const loadTrendingTracks = async () => {
+    try {
+      const tracks = await recommendationsAPI.getTrending(10);
+      setTrendingTracks(tracks);
+    } catch (error) {
+      console.error('Failed to load trending tracks:', error);
+    }
+  };
+
   const handleTrackSelect = (track) => {
     playTrack(track, recentTracks);
   };
+
+  const handleToggleFavorite = async (e, trackId) => {
+    e.stopPropagation();
+    try {
+      await toggleFavorite(trackId);
+      const action = isFavorite(trackId) ? 'removed from' : 'added to';
+      toast({
+        title: 'Success',
+        description: `Track ${action} favorites`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update favorite status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const TrackCard = ({ track, onPlay, onFavorite, index, showArtist = true }) => (
+    <div
+      onClick={() => onPlay(track)}
+      className="group cursor-pointer overflow-hidden glass-card-dark shadow-xl hover:-translate-y-2 hover:shadow-2xl transition-all"
+    >
+      <div className="aspect-square overflow-hidden relative">
+        <img src={track.artwork_url} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+          <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-100 rounded-full p-2">
+            <Play size={16} />
+          </Button>
+          <Button size="sm" variant="outline" className="rounded-full p-2" onClick={onFavorite}>
+            <Heart size={16} fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'} />
+          </Button>
+        </div>
+      </div>
+      <div className="p-4 space-y-1 backdrop-blur-xl">
+        <p className="text-xs text-slate-400">{index || ''}</p>
+        <h3 className="text-white font-semibold truncate">{track.title}</h3>
+        {showArtist && <p className="text-slate-400 text-sm truncate">{track.artist}</p>}
+        <p className="text-slate-500 text-xs">{formatTime(track.duration || 0)}</p>
+      </div>
+    </div>
+  );
 
   const handleUploadComplete = (uploadedTracks) => {
     setRecentTracks(prev => [...uploadedTracks, ...prev].slice(0, 20));
@@ -201,18 +275,6 @@ const ResonanceApp = () => {
     setRecentTracks(prev => [track, ...prev].slice(0, 20));
     playTrack(track);
     setShowYouTubeSearch(false);
-  };
-
-  const handleAddToQueue = (track) => {
-    addToQueue([track]);
-    toast({
-      title: 'Added to queue',
-      description: `${track.title} has been added to the play queue.`,
-    });
-  };
-
-  const handleRemoveFromQueue = (index) => {
-    removeFromQueue(index);
   };
 
   const toggleRepeat = () => {
@@ -386,43 +448,13 @@ const ResonanceApp = () => {
             ) : recentTracks.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {recentTracks.slice(0, 10).map((track, idx) => (
-                  <div
+                  <TrackCard
                     key={idx}
-                    onClick={() => handleTrackSelect(track)}
-                    className="group cursor-pointer overflow-hidden glass-card-dark shadow-xl hover:-translate-y-2 hover:shadow-2xl"
-                  >
-                    <div className="aspect-square overflow-hidden">
-                      <img src={track.artwork_url} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                    </div>
-                    <div className="p-4 space-y-1 backdrop-blur-xl">
-                      <h3 className="text-white font-semibold truncate">{track.title}</h3>
-                      <p className="text-slate-400 text-sm truncate">{track.artist}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToQueue(track);
-                          }}
-                          className="rounded-full px-3 py-2 glass-button-dark text-xs"
-                        >
-                          Add to queue
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleTrackSelect(track);
-                          }}
-                          className="rounded-full px-3 py-2 glass-button text-xs"
-                        >
-                          Play now
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                    track={track}
+                    onPlay={handleTrackSelect}
+                    onFavorite={(e) => handleToggleFavorite(e, track._id || track.id)}
+                    index={idx + 1}
+                  />
                 ))}
               </div>
             ) : (
@@ -461,7 +493,7 @@ const ResonanceApp = () => {
                         <Button size="sm" className="glass-button-dark rounded-full px-3 py-2" onClick={() => playTrack(track, queue)}>
                           Play
                         </Button>
-                        <Button size="sm" className="glass-button-dark rounded-full p-2" onClick={() => handleRemoveFromQueue(idx)}>
+                        <Button size="sm" className="glass-button-dark rounded-full p-2" onClick={() => removeFromQueue(idx)}>
                           <Trash2 size={16} />
                         </Button>
                       </div>
@@ -525,7 +557,7 @@ const ResonanceApp = () => {
                     <Button size="sm" className="glass-button-dark rounded-full px-3 py-2" onClick={() => playTrack(track, queue)}>
                       Play
                     </Button>
-                    <Button size="sm" className="glass-button-dark rounded-full p-2" onClick={() => handleRemoveFromQueue(idx)}>
+                    <Button size="sm" className="glass-button-dark rounded-full p-2" onClick={() => removeFromQueue(idx)}>
                       <Trash2 size={16} />
                     </Button>
                   </div>
@@ -538,105 +570,293 @@ const ResonanceApp = () => {
     </ScrollArea>
   );
 
-  const SearchView = () => (
-    <ScrollArea className="flex-1">
-      <div className="p-6 md:p-8 space-y-8">
-        <div className="space-y-4">
-          <h1 className="text-4xl font-semibold text-white">Search artists, songs, and playlists</h1>
-          <div className="max-w-2xl">
-            <div className="relative">
-              <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="What do you want to listen to?"
-                className="glass-input w-full py-4 pl-14 pr-4 rounded-2xl font-medium text-white"
-              />
-            </div>
-          </div>
-        </div>
+  const SearchView = () => {
+    const [searchQuery, setSearchQuery] = useState('');
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-white">Browse Genres</h2>
-              <p className="text-slate-400">Find playlists, moods, and trends curated for you.</p>
-            </div>
-            <Button variant="ghost" className="text-slate-300 hover:text-white">More</Button>
-          </div>
+    const handleSearch = (query) => {
+      setSearchQuery(query);
+      if (query.trim()) {
+        searchTracks(query, 30);
+      } else {
+        clearResults();
+      }
+    };
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {[
-              { title: "Pop", color: "from-pink-500 to-rose-500" },
-              { title: "Hip-Hop", color: "from-orange-500 to-red-500" },
-              { title: "Rock", color: "from-purple-500 to-indigo-500" },
-              { title: "Jazz", color: "from-blue-500 to-cyan-500" },
-              { title: "Classical", color: "from-green-500 to-emerald-500" },
-              { title: "Electronic", color: "from-yellow-500 to-orange-500" }
-            ].map((genre, idx) => (
-              <div key={idx} className={`overflow-hidden rounded-3xl bg-gradient-to-br ${genre.color} shadow-xl shadow-black/30 transition hover:shadow-2xl hover:-translate-y-1 p-5 h-28 flex items-end cursor-pointer group glass-card`}> 
-                <h3 className="text-white font-semibold text-lg group-hover:scale-105 transition-transform">{genre.title}</h3>
+    return (
+      <ScrollArea className="flex-1">
+        <div className="p-6 md:p-8 space-y-8">
+          <div className="space-y-4">
+            <h1 className="text-4xl font-semibold text-white">Search your library</h1>
+            <div className="max-w-2xl">
+              <div className="relative">
+                <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by title, artist, or album..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="glass-input w-full py-4 pl-14 pr-4 rounded-2xl font-medium text-white placeholder-slate-500"
+                />
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </div>
-    </ScrollArea>
-  );
 
-  const LibraryView = () => (
-    <ScrollArea className="flex-1">
-      <div className="p-6 md:p-8 space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-4xl font-semibold text-white">Your Library</h1>
-            <p className="text-slate-500 mt-2">{recentTracks.length} songs available to play.</p>
-          </div>
-          <Button className="glass-button-dark rounded-full px-5 py-3 text-slate-300 hover:text-white">
-            <Clock size={16} className="mr-2" />
-            Recently added
-          </Button>
-        </div>
-
-        {recentTracks.length > 0 ? (
-          <div className="grid gap-4">
-            {recentTracks.map((track, idx) => (
-              <div
-                key={idx}
-                onClick={() => handleTrackSelect(track)}
-                className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20">
-                    <img
-                      src={track.artwork_url}
-                      alt={track.title}
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
+          {/* Search History */}
+          {!searchQuery && searchHistory.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">Recent searches</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSearchHistory}
+                  className="text-slate-400 hover:text-white"
+                >
+                  Clear all
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {searchHistory.map((item, idx) => (
+                  <Button
+                    key={idx}
+                    variant="outline"
+                    className="border-white/20 text-slate-300 hover:text-white rounded-full"
+                    onClick={() => handleSearch(item.query)}
+                  >
+                    {item.query}
+                    <X
+                      size={14}
+                      className="ml-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteHistoryItem(item.query);
+                      }}
                     />
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Search Results */}
+          {searchQuery && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-white">
+                  Results for "{searchQuery}" ({searchResults.length})
+                </h2>
+              </div>
+
+              {isSearching_hook ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {Array.from({ length: 8 }).map((_, idx) => (
+                    <div key={idx} className="h-56 rounded-3xl glass-dark-sm animate-pulse" />
+                  ))}
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {searchResults.map((track, idx) => (
+                    <TrackCard
+                      key={idx}
+                      track={track}
+                      onPlay={handleTrackSelect}
+                      onFavorite={(e) => handleToggleFavorite(e, track._id || track.id)}
+                      index={idx + 1}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="glass-card-dark p-12 text-center border-dashed border-2">
+                  <Search size={48} className="mx-auto mb-4 text-slate-500" />
+                  <h3 className="text-white text-xl font-semibold mb-2">No results found</h3>
+                  <p className="text-slate-400">Try searching for a different song, artist, or album.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Browse Sections */}
+          {!searchQuery && (
+            <div className="space-y-8">
+              {/* Trending */}
+              {trendingTracks.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Flame className="text-orange-500" />
+                      <h2 className="text-2xl font-semibold text-white">Trending Now</h2>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-white text-lg font-semibold truncate">{track.title}</h3>
-                    <p className="text-slate-400 truncate">{track.artist}</p>
-                    <p className="text-slate-500 text-sm mt-1">{track.album || 'Single'}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {trendingTracks.slice(0, 10).map((track, idx) => (
+                      <TrackCard
+                        key={idx}
+                        track={track}
+                        onPlay={handleTrackSelect}
+                        onFavorite={(e) => handleToggleFavorite(e, track._id || track.id)}
+                        index={idx + 1}
+                      />
+                    ))}
                   </div>
-                  <div className="text-slate-400 text-sm">{formatTime(track.duration || 0)}</div>
+                </div>
+              )}
+
+              {/* Browse Genres */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-semibold text-white">Browse all</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {[
+                    { title: "Pop", color: "from-pink-500 to-rose-500" },
+                    { title: "Hip-Hop", color: "from-orange-500 to-red-500" },
+                    { title: "Rock", color: "from-purple-500 to-indigo-500" },
+                    { title: "Jazz", color: "from-blue-500 to-cyan-500" },
+                    { title: "Classical", color: "from-green-500 to-emerald-500" },
+                    { title: "Electronic", color: "from-yellow-500 to-orange-500" }
+                  ].map((genre, idx) => (
+                    <div key={idx} className={`overflow-hidden rounded-3xl bg-gradient-to-br ${genre.color} shadow-xl shadow-black/30 transition hover:shadow-2xl hover:-translate-y-1 p-5 h-28 flex items-end cursor-pointer group glass-card`}>
+                      <h3 className="text-white font-semibold text-lg group-hover:scale-105 transition-transform">{genre.title}</h3>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="glass-card-dark p-12 text-center border-dashed border-2">
-            <Library size={48} className="mx-auto mb-4 text-slate-500" />
-            <h3 className="text-white text-xl font-semibold mb-2">Your library is empty</h3>
-            <p className="text-slate-400 mb-6">Upload tracks or add music from YouTube to build your collection.</p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Upload Music</Button>
-              <Button onClick={() => setShowYouTubeSearch(true)} className="glass-button-dark rounded-full px-5 py-3 text-white">Search YouTube</Button>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+    );
+  };
+
+  const LibraryView = () => {
+    const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+    const [showPlaylistTracks, setShowPlaylistTracks] = useState(false);
+
+    return (
+      <ScrollArea className="flex-1">
+        <div className="p-6 md:p-8 space-y-8">
+          {/* Header */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-4xl font-semibold text-white">Your Library</h1>
+              <p className="text-slate-500 mt-2">{recentTracks.length} songs in your collection</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setSelectedPlaylist(null)}
+                className="glass-button-dark rounded-full px-5 py-3 text-slate-300 hover:text-white"
+              >
+                <Music size={16} className="mr-2" />
+                All tracks
+              </Button>
             </div>
           </div>
-        )}
-      </div>
-    </ScrollArea>
-  );
+
+          {/* Playlists Section */}
+          {playlists.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-white">Your Playlists</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-white"
+                  onClick={() => {
+                    const name = prompt('Enter playlist name:');
+                    if (name) createPlaylist(name);
+                  }}
+                >
+                  <Plus size={16} className="mr-1" />
+                  New
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {playlists.map((playlist) => (
+                  <div
+                    key={playlist.id}
+                    onClick={() => {
+                      setSelectedPlaylist(playlist);
+                      setShowPlaylistTracks(true);
+                    }}
+                    className="group cursor-pointer overflow-hidden glass-card-dark shadow-xl hover:-translate-y-2 hover:shadow-2xl transition-all p-4 rounded-3xl"
+                  >
+                    <div className="flex items-center justify-center h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-3">
+                      <ListMusic size={48} className="text-white/80" />
+                    </div>
+                    <h3 className="text-white font-semibold truncate">{playlist.name}</h3>
+                    <p className="text-slate-400 text-sm">{playlist.track_count || 0} songs</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tracks */}
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-white">
+              {selectedPlaylist ? selectedPlaylist.name : 'All Tracks'}
+            </h2>
+            {recentTracks.length > 0 ? (
+              <div className="grid gap-4">
+                {recentTracks.map((track, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleTrackSelect(track)}
+                    className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
+                        <img
+                          src={track.artwork_url}
+                          alt={track.title}
+                          className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                          {isPlaying && currentTrack?.id === track.id ? (
+                            <Pause size={20} className="text-white" />
+                          ) : (
+                            <Play size={20} className="text-white" />
+                          )}
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-white text-lg font-semibold truncate">{track.title}</h3>
+                        <p className="text-slate-400 truncate">{track.artist}</p>
+                        <p className="text-slate-500 text-sm mt-1">{track.album || 'Single'}</p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className="text-slate-400 text-sm">{formatTime(track.duration || 0)}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleToggleFavorite(e, track._id || track.id)}
+                          className="rounded-full p-2"
+                        >
+                          <Heart
+                            size={18}
+                            fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'}
+                            className={isFavorite(track._id || track.id) ? 'text-red-500' : ''}
+                          />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="glass-card-dark p-12 text-center border-dashed border-2">
+                <Library size={48} className="mx-auto mb-4 text-slate-500" />
+                <h3 className="text-white text-xl font-semibold mb-2">Your library is empty</h3>
+                <p className="text-slate-400 mb-6">Upload tracks or add music from YouTube to build your collection.</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Upload Music</Button>
+                  <Button onClick={() => setShowYouTubeSearch(true)} className="glass-button-dark rounded-full px-5 py-3 text-white">Search YouTube</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </ScrollArea>
+    );
+  };
 
   const FullPlayerView = () => (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-black via-slate-950 to-black text-white">
@@ -847,6 +1067,15 @@ const ResonanceApp = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowKeyboardHelp(true)}
+                className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                title="Keyboard shortcuts"
+              >
+                <HelpCircle size={18} />
+              </Button>
               <Button className="glass-button rounded-full px-4 py-2 text-sm font-medium">
                 Upgrade
               </Button>
@@ -948,6 +1177,37 @@ const ResonanceApp = () => {
             >
               Done
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Keyboard Shortcuts Dialog */}
+      <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
+        <DialogContent className="glass-card border-white/20 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Keyboard Shortcuts</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Learn how to control the player with your keyboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {[
+              { key: 'Space', action: 'Play / Pause' },
+              { key: 'N or →', action: 'Next Track' },
+              { key: 'P or ←', action: 'Previous Track' },
+              { key: 'S', action: 'Toggle Shuffle' },
+              { key: 'R', action: 'Toggle Repeat' },
+              { key: '↑', action: 'Increase Volume' },
+              { key: '↓', action: 'Decrease Volume' },
+              { key: 'M', action: 'Mute / Unmute' },
+            ].map((shortcut, idx) => (
+              <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                <span className="text-slate-400">{shortcut.action}</span>
+                <kbd className="px-3 py-1 bg-white/10 text-white text-sm rounded font-mono border border-white/20">
+                  {shortcut.key}
+                </kbd>
+              </div>
+            ))}
           </div>
         </DialogContent>
       </Dialog>

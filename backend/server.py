@@ -18,7 +18,7 @@ backend_dir = Path(__file__).parent
 sys.path.insert(0, str(backend_dir))
 
 # Import routes
-from routes import tracks, youtube, artwork
+from routes import tracks, youtube, artwork, playlists, favorites, recommendations, search
 from database import create_indexes
 from models import Track
 
@@ -68,6 +68,10 @@ api_router = APIRouter(prefix="/api")
 api_router.include_router(tracks.router)
 api_router.include_router(youtube.router)
 api_router.include_router(artwork.router)
+api_router.include_router(playlists.router)
+api_router.include_router(favorites.router)
+api_router.include_router(recommendations.router)
+api_router.include_router(search.router)
 
 # Legacy hello world endpoint
 @api_router.get("/")
