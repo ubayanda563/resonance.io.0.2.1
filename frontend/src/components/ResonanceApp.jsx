@@ -164,6 +164,8 @@ const ResonanceApp = () => {
     saveHomeModules(reordered);
   };
 
+  const openHomeSettings = () => setShowHomeSettings(true);
+
   const changeView = (view) => {
     if (view === currentView) return;
     const currentIndex = VIEW_ORDER.indexOf(currentView);
@@ -316,13 +318,18 @@ const ResonanceApp = () => {
   const HomeView = () => (
     <ScrollArea className="flex-1">
       <div className="p-6 md:p-8 space-y-8">
-        <div className="space-y-3">
-          <p className="text-sm uppercase tracking-[0.4em] text-slate-400">Good evening</p>
-          <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Your music, your mood.</h1>
-          <p className="max-w-2xl text-slate-400">Stream your library, continue listening, and manage playlists with a premium player feel across every view.</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <p className="text-sm uppercase tracking-[0.4em] text-slate-400">Good evening</p>
+            <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Your music, your mood.</h1>
+            <p className="max-w-2xl text-slate-400">Stream your library, continue listening, and manage playlists with a premium player feel across every view.</p>
+          </div>
+          <Button variant="outline" onClick={openHomeSettings} className="text-slate-300 hover:text-white rounded-full px-5 py-3">
+            Customize home
+          </Button>
         </div>
 
-        {currentTrack && (
+        {homeModules.find((module) => module.id === 'nowPlaying')?.enabled && currentTrack && (
           <div className="glass-card-dark overflow-hidden shadow-2xl">
             <div className="grid gap-6 md:grid-cols-[280px_1fr] items-center p-6">
               <div className="rounded-[2rem] overflow-hidden shadow-xl shadow-white/10 ring-1 ring-white/20">
@@ -360,109 +367,173 @@ const ResonanceApp = () => {
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-white">Recently Played</h2>
-              <p className="text-slate-500">Tap to continue listening to your latest tracks.</p>
+        {homeModules.find((module) => module.id === 'recentlyPlayed')?.enabled && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-white">Recently Played</h2>
+                <p className="text-slate-500">Tap to continue listening to your latest tracks.</p>
+              </div>
+              <Button variant="ghost" className="text-slate-300 hover:text-white">Show all</Button>
             </div>
-            <Button variant="ghost" className="text-slate-300 hover:text-white">Show all</Button>
-          </div>
 
-          {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {Array.from({ length: 8 }).map((_, idx) => (
-                <div key={idx} className="h-56 rounded-3xl glass-dark-sm animate-pulse" />
-              ))}
-            </div>
-          ) : recentTracks.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {recentTracks.slice(0, 10).map((track, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleTrackSelect(track)}
-                  className="group cursor-pointer overflow-hidden glass-card-dark shadow-xl hover:-translate-y-2 hover:shadow-2xl"
-                >
-                  <div className="aspect-square overflow-hidden">
-                    <img src={track.artwork_url} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                  </div>
-                  <div className="p-4 space-y-1 backdrop-blur-xl">
-                    <h3 className="text-white font-semibold truncate">{track.title}</h3>
-                    <p className="text-slate-400 text-sm truncate">{track.artist}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToQueue(track);
-                        }}
-                        className="rounded-full px-3 py-2 glass-button-dark text-xs"
-                      >
-                        Add to queue
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTrackSelect(track);
-                        }}
-                        className="rounded-full px-3 py-2 glass-button text-xs"
-                      >
-                        Play now
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="glass-card-dark p-12 text-center border-dashed border-2">
-              <Music size={48} className="mx-auto mb-4 text-slate-500" />
-              <h3 className="text-white text-xl font-semibold mb-2">No music yet</h3>
-              <p className="text-slate-400 mb-6">Upload a track or search YouTube to start streaming.</p>
-              <div className="flex flex-wrap justify-center gap-3">
-                <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Upload Music</Button>
-                <Button onClick={() => setShowYouTubeSearch(true)} className="glass-button-dark rounded-full px-5 py-3 text-white">YouTube Search</Button>
+            {isLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {Array.from({ length: 8 }).map((_, idx) => (
+                  <div key={idx} className="h-56 rounded-3xl glass-dark-sm animate-pulse" />
+                ))}
               </div>
-            </div>
-          )}
-          {queue.length > 0 && (
-            <div className="glass-card-dark p-6 mt-8">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 text-slate-400 text-sm uppercase tracking-[0.3em]">
-                    <ListMusic size={16} />
-                    <span>Play Queue</span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-white">Up next</h3>
-                </div>
-                <Button variant="ghost" size="sm" onClick={clearQueue} className="text-slate-300 hover:text-white">
-                  Clear queue
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {queue.map((track, idx) => (
-                  <div key={track.id || idx} className="flex items-center justify-between gap-4 glass-dark rounded-2xl p-4">
-                    <div>
-                      <p className="text-sm text-slate-400">{idx + 1}. {track.title}</p>
-                      <p className="text-sm text-white truncate">{track.artist}</p>
+            ) : recentTracks.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {recentTracks.slice(0, 10).map((track, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleTrackSelect(track)}
+                    className="group cursor-pointer overflow-hidden glass-card-dark shadow-xl hover:-translate-y-2 hover:shadow-2xl"
+                  >
+                    <div className="aspect-square overflow-hidden">
+                      <img src={track.artwork_url} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" className="glass-button-dark rounded-full px-3 py-2" onClick={() => playTrack(track, queue)}>
-                        Play
-                      </Button>
-                      <Button size="sm" className="glass-button-dark rounded-full p-2" onClick={() => handleRemoveFromQueue(idx)}>
-                        <Trash2 size={16} />
-                      </Button>
+                    <div className="p-4 space-y-1 backdrop-blur-xl">
+                      <h3 className="text-white font-semibold truncate">{track.title}</h3>
+                      <p className="text-slate-400 text-sm truncate">{track.artist}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToQueue(track);
+                          }}
+                          className="rounded-full px-3 py-2 glass-button-dark text-xs"
+                        >
+                          Add to queue
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTrackSelect(track);
+                          }}
+                          className="rounded-full px-3 py-2 glass-button text-xs"
+                        >
+                          Play now
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="glass-card-dark p-12 text-center border-dashed border-2">
+                <Music size={48} className="mx-auto mb-4 text-slate-500" />
+                <h3 className="text-white text-xl font-semibold mb-2">No music yet</h3>
+                <p className="text-slate-400 mb-6">Upload a track or search YouTube to start streaming.</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Upload Music</Button>
+                  <Button onClick={() => setShowYouTubeSearch(true)} className="glass-button-dark rounded-full px-5 py-3 text-white">YouTube Search</Button>
+                </div>
+              </div>
+            )}
+            {queue.length > 0 && (
+              <div className="glass-card-dark p-6 mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-slate-400 text-sm uppercase tracking-[0.3em]">
+                      <ListMusic size={16} />
+                      <span>Play Queue</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-white">Up next</h3>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={clearQueue} className="text-slate-300 hover:text-white">
+                    Clear queue
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {queue.map((track, idx) => (
+                    <div key={track.id || idx} className="flex items-center justify-between gap-4 glass-dark rounded-2xl p-4">
+                      <div>
+                        <p className="text-sm text-slate-400">{idx + 1}. {track.title}</p>
+                        <p className="text-sm text-white truncate">{track.artist}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" className="glass-button-dark rounded-full px-3 py-2" onClick={() => playTrack(track, queue)}>
+                          Play
+                        </Button>
+                        <Button size="sm" className="glass-button-dark rounded-full p-2" onClick={() => handleRemoveFromQueue(idx)}>
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {homeModules.find((module) => module.id === 'genres')?.enabled && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-white">Browse Genres</h2>
+                <p className="text-slate-400">Find playlists, moods, and trends curated for you.</p>
+              </div>
+              <Button variant="ghost" className="text-slate-300 hover:text-white">More</Button>
             </div>
-          )}
-        </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {[
+                { title: "Pop", color: "from-pink-500 to-rose-500" },
+                { title: "Hip-Hop", color: "from-orange-500 to-red-500" },
+                { title: "Rock", color: "from-purple-500 to-indigo-500" },
+                { title: "Jazz", color: "from-blue-500 to-cyan-500" },
+                { title: "Classical", color: "from-green-500 to-emerald-500" },
+                { title: "Electronic", color: "from-yellow-500 to-orange-500" }
+              ].map((genre, idx) => (
+                <div key={idx} className={`overflow-hidden rounded-3xl bg-gradient-to-br ${genre.color} shadow-xl shadow-black/30 transition hover:shadow-2xl hover:-translate-y-1 p-5 h-28 flex items-end cursor-pointer group glass-card`}> 
+                  <h3 className="text-white font-semibold text-lg group-hover:scale-105 transition-transform">{genre.title}</h3>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {homeModules.find((module) => module.id === 'queuePreview')?.enabled && queue.length > 0 && (
+          <div className="glass-card-dark p-6 mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 text-slate-400 text-sm uppercase tracking-[0.3em]">
+                  <ListMusic size={16} />
+                  <span>Play Queue</span>
+                </div>
+                <h3 className="text-xl font-semibold text-white">Up next</h3>
+              </div>
+              <Button variant="ghost" size="sm" onClick={clearQueue} className="text-slate-300 hover:text-white">
+                Clear queue
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {queue.map((track, idx) => (
+                <div key={track.id || idx} className="flex items-center justify-between gap-4 glass-dark rounded-2xl p-4">
+                  <div>
+                    <p className="text-sm text-slate-400">{idx + 1}. {track.title}</p>
+                    <p className="text-sm text-white truncate">{track.artist}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" className="glass-button-dark rounded-full px-3 py-2" onClick={() => playTrack(track, queue)}>
+                      Play
+                    </Button>
+                    <Button size="sm" className="glass-button-dark rounded-full p-2" onClick={() => handleRemoveFromQueue(idx)}>
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </ScrollArea>
   );
@@ -833,8 +904,7 @@ const ResonanceApp = () => {
                     onCheckedChange={(checked) => {
                       const newModules = [...homeModules];
                       newModules[index] = { ...newModules[index], enabled: checked };
-                      setHomeModules(newModules);
-                      localStorage.setItem('resonanceHomeModules', JSON.stringify(newModules));
+                      saveHomeModules(newModules);
                     }}
                   />
                   <span className={`text-sm font-medium ${module.enabled ? 'text-white' : 'text-white/50'}`}>
@@ -845,14 +915,7 @@ const ResonanceApp = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (index > 0) {
-                        const newModules = [...homeModules];
-                        [newModules[index - 1], newModules[index]] = [newModules[index], newModules[index - 1]];
-                        setHomeModules(newModules);
-                        localStorage.setItem('resonanceHomeModules', JSON.stringify(newModules));
-                      }
-                    }}
+                    onClick={() => moveHomeModule(index, -1)}
                     disabled={index === 0}
                     className="text-white/70 hover:text-white hover:bg-white/10"
                   >
@@ -861,14 +924,7 @@ const ResonanceApp = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (index < homeModules.length - 1) {
-                        const newModules = [...homeModules];
-                        [newModules[index], newModules[index + 1]] = [newModules[index + 1], newModules[index]];
-                        setHomeModules(newModules);
-                        localStorage.setItem('resonanceHomeModules', JSON.stringify(newModules));
-                      }
-                    }}
+                    onClick={() => moveHomeModule(index, 1)}
                     disabled={index === homeModules.length - 1}
                     className="text-white/70 hover:text-white hover:bg-white/10"
                   >
@@ -881,10 +937,7 @@ const ResonanceApp = () => {
           <div className="flex justify-end space-x-2 pt-4">
             <Button
               variant="outline"
-              onClick={() => {
-                setHomeModules(HOME_MODULE_DEFAULTS);
-                localStorage.setItem('resonanceHomeModules', JSON.stringify(HOME_MODULE_DEFAULTS));
-              }}
+              onClick={() => saveHomeModules(HOME_MODULE_DEFAULTS)}
               className="border-white/20 text-white hover:bg-white/10"
             >
               Reset to Default
