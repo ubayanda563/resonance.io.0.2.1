@@ -36,24 +36,26 @@ export const FavoritesProvider = ({ children }) => {
   }, []);
 
   const toggleFavorite = useCallback(async (trackId) => {
+    const wasFavorite = favoriteIds.has(trackId);
     try {
-      if (favoriteIds.has(trackId)) {
+      if (wasFavorite) {
         await favoritesAPI.removeFavorite(trackId);
         const newIds = new Set(favoriteIds);
         newIds.delete(trackId);
         setFavoriteIds(newIds);
-        setFavorites(favorites.filter(t => (t._id || t.id) !== trackId));
+        setFavorites((prev) => prev.filter(t => (t._id || t.id) !== trackId));
       } else {
         await favoritesAPI.addFavorite(trackId);
         const newIds = new Set(favoriteIds);
         newIds.add(trackId);
         setFavoriteIds(newIds);
       }
+      return !wasFavorite;
     } catch (err) {
       console.error('Error toggling favorite:', err);
       throw err;
     }
-  }, [favorites, favoriteIds]);
+  }, [favoriteIds]);
 
   const isFavorite = useCallback((trackId) => {
     return favoriteIds.has(trackId);

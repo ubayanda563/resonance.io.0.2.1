@@ -31,8 +31,12 @@ import {
   Disc3,
   Mic2,
   HelpCircle,
+  Sun,
+  Moon,
+  Bell,
+  Cloud,
 } from 'lucide-react';
-import { trackAPI, handleApiError, recommendationsAPI } from '../services/api';
+import { trackAPI, handleApiError, recommendationsAPI, playlistAPI } from '../services/api';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 import { useSearch } from '../hooks/useSearch';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
@@ -56,7 +60,43 @@ const HOME_MODULE_DEFAULTS = [
   { id: 'queuePreview', label: 'Queue Preview', enabled: true },
 ];
 
-const VIEW_ORDER = ['home', 'search', 'library'];
+const VIEW_ORDER = ['home', 'search', 'library', 'favorites'];
+
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('App caught error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-6">
+          <div className="max-w-md text-center glass-card-dark p-8">
+            <h1 className="text-3xl font-semibold mb-4">Something went wrong</h1>
+            <p className="text-slate-400 mb-6">The app encountered an issue, but you can reload to continue.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-white text-slate-950 rounded-full px-6 py-3 font-semibold"
+            >
+              Reload app
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const ResonanceApp = () => {
   const [currentView, setCurrentView] = useState('home');
@@ -68,10 +108,39 @@ const ResonanceApp = () => {
   const [recentTracks, setRecentTracks] = useState([]);
   const [trendingTracks, setTrendingTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [globalLoading, setGlobalLoading] = useState(true);
+  const [globalError, setGlobalError] = useState('');
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showYouTubeSearch, setShowYouTubeSearch] = useState(false);
   const [showHomeSettings, setShowHomeSettings] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
+  const [playlistTrackTarget, setPlaylistTrackTarget] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('resonanceTheme') || 'dark';
+    }
+    return 'dark';
+  });
+  const [carMode, setCarMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(localStorage.getItem('resonanceCarMode') || 'false');
+    }
+    return false;
+  });
+  const [notificationPermission, setNotificationPermission] = useState('default');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(localStorage.getItem('resonanceNotificationsEnabled') || 'false');
+    }
+    return false;
+  });
+  const [syncEnabled, setSyncEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(localStorage.getItem('resonanceSyncEnabled') || 'true');
+    }
+    return true;
+  });
   const [homeModules, setHomeModules] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -84,13 +153,15 @@ const ResonanceApp = () => {
     return HOME_MODULE_DEFAULTS;
   });
   const { toast } = useToast();
-  const { isFavorite, toggleFavorite } = useFavoritesContext();
+  const { favorites, isFavorite, toggleFavorite } = useFavoritesContext();
   const { playlists, createPlaylist } = usePlaylistContext();
   const {
     searchResults,
+    searchArtistResults,
     searchHistory,
     isSearching: isSearching_hook,
     searchTracks,
+    searchArtists,
     clearResults,
     clearSearchHistory,
     deleteHistoryItem,
@@ -128,24 +199,169 @@ const ResonanceApp = () => {
       .catch(() => setGithubAvatar('https://github.com/Moodstlbn.png'));
   }, []);
 
-  // Load recent tracks
   useEffect(() => {
-    loadRecentTracks();
-    loadTrendingTracks();
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.classList.toggle('light', theme === 'light');
+    document.documentElement.dataset.theme = theme;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('resonanceTheme', theme);
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('resonanceCarMode', JSON.stringify(carMode));
+    }
+  }, [carMode]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (!notificationsEnabled) {
+      setNotificationPermission('default');
+      return;
+    }
+
+    const resolvePermission = (permission) => setNotificationPermission(permission);
+
+    if (Notification.permission === 'default') {
+      const requestResult = Notification.requestPermission(resolvePermission);
+      if (requestResult && typeof requestResult.then === 'function') {
+        requestResult.then(resolvePermission).catch(() => setNotificationPermission('denied'));
+      }
+    } else {
+      setNotificationPermission(Notification.permission);
+    }
+  }, [notificationsEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !currentTrack || notificationPermission !== 'granted' || !notificationsEnabled) return;
+    try {
+      new Notification(currentTrack.title, {
+        body: `Now playing ${currentTrack.artist}`,
+        icon: currentTrack.artwork_url,
+      });
+    } catch (error) {
+      console.warn('Notification blocked or unsupported', error);
+    }
+  }, [currentTrack, notificationPermission, notificationsEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('resonanceNotificationsEnabled', JSON.stringify(notificationsEnabled));
+  }, [notificationsEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('resonanceSyncEnabled', JSON.stringify(syncEnabled));
+  }, [syncEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!syncEnabled) return;
+
+    const storedState = window.localStorage.getItem('resonance-player-state');
+    if (storedState) {
+      try {
+        const remoteState = JSON.parse(storedState);
+        if (remoteState.theme && remoteState.theme !== theme) {
+          setTheme(remoteState.theme);
+        }
+        if (typeof remoteState.carMode === 'boolean' && remoteState.carMode !== carMode) {
+          setCarMode(remoteState.carMode);
+        }
+      } catch {
+        // ignore invalid saved state
+      }
+    }
+  }, [syncEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (event) => {
+      if (!syncEnabled) return;
+      if (event.key !== 'resonance-player-state' || !event.newValue) return;
+      try {
+        const remoteState = JSON.parse(event.newValue);
+        if (remoteState.theme && remoteState.theme !== theme) {
+          setTheme(remoteState.theme);
+        }
+        if (typeof remoteState.carMode === 'boolean' && remoteState.carMode !== carMode) {
+          setCarMode(remoteState.carMode);
+        }
+      } catch {
+        // ignore invalid sync payloads
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [theme, carMode, syncEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !syncEnabled) return;
+    localStorage.setItem(
+      'resonance-player-state',
+      JSON.stringify({
+        theme,
+        carMode,
+        currentTrackId: currentTrack?._id || currentTrack?.id,
+        isPlaying,
+        queueIds: queue.map((track) => track._id || track.id || track.title),
+      })
+    );
+  }, [theme, carMode, currentTrack, isPlaying, queue, syncEnabled]);
+
+  const initializeApp = async () => {
+    setGlobalError('');
+    setGlobalLoading(true);
+
+    try {
+      await Promise.all([
+        loadRecentTracks({ suppressToast: true }),
+        loadTrendingTracks(),
+      ]);
+    } catch (error) {
+      const errorInfo = handleApiError(error);
+      setGlobalError(errorInfo.message || 'Unable to load your music experience.');
+    } finally {
+      setGlobalLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    initializeApp();
   }, []);
 
-  const loadRecentTracks = async () => {
+  const loadRecentTracks = async ({ suppressToast = false } = {}) => {
     setIsLoading(true);
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('resonanceCachedTracks');
+      if (cached) {
+        try {
+          setRecentTracks(JSON.parse(cached));
+        } catch {
+          // ignore invalid cache
+        }
+      }
+    }
+
     try {
       const tracks = await trackAPI.getRecentTracks(20);
       setRecentTracks(tracks);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('resonanceCachedTracks', JSON.stringify(tracks));
+      }
     } catch (error) {
       const errorInfo = handleApiError(error);
-      toast({
-        title: "Failed to load tracks",
-        description: errorInfo.message,
-        variant: "destructive"
-      });
+      if (!suppressToast) {
+        toast({
+          title: "Failed to load tracks",
+          description: errorInfo.message,
+          variant: "destructive"
+        });
+      }
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -160,29 +376,7 @@ const ResonanceApp = () => {
     }
   };
 
-  const handleTrackSelect = (track) => {
-    playTrack(track, recentTracks);
-  };
-
-  const handleToggleFavorite = async (e, trackId) => {
-    e.stopPropagation();
-    try {
-      await toggleFavorite(trackId);
-      const action = isFavorite(trackId) ? 'removed from' : 'added to';
-      toast({
-        title: 'Success',
-        description: `Track ${action} favorites`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update favorite status',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const TrackCard = ({ track, onPlay, onFavorite, index, showArtist = true }) => (
+  const TrackCard = ({ track, onPlay, onFavorite, onAddToPlaylist, index, showArtist = true }) => (
     <div
       onClick={() => onPlay(track)}
       className="group cursor-pointer overflow-hidden glass-card-dark shadow-xl hover:-translate-y-2 hover:shadow-2xl transition-all"
@@ -190,12 +384,33 @@ const ResonanceApp = () => {
       <div className="aspect-square overflow-hidden relative">
         <img src={track.artwork_url} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-          <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-100 rounded-full p-2">
+          <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-100 rounded-full p-2" onClick={(e) => { e.stopPropagation(); onPlay(track); }}>
             <Play size={16} />
           </Button>
-          <Button size="sm" variant="outline" className="rounded-full p-2" onClick={onFavorite}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-full p-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavorite(track._id || track.id);
+            }}
+          >
             <Heart size={16} fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'} />
           </Button>
+          {onAddToPlaylist && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToPlaylist(track);
+              }}
+            >
+              <Plus size={16} />
+            </Button>
+          )}
         </div>
       </div>
       <div className="p-4 space-y-1 backdrop-blur-xl">
@@ -206,6 +421,174 @@ const ResonanceApp = () => {
       </div>
     </div>
   );
+
+  class SmoothMusicScroller {
+    constructor(container, renderCallback) {
+      this.container = container;
+      this.renderCallback = renderCallback;
+      this.itemHeight = 112;
+      this.buffer = 8;
+      this.totalItems = 0;
+      this.currentScroll = 0;
+      this.targetScroll = 0;
+      this.velocity = 0;
+      this.isAnimating = false;
+      this.lastWheelTime = 0;
+      this.scrollPriorityBoost = 1.8;
+      this.frameRequested = false;
+      this.onWheel = this.onWheel.bind(this);
+      this.onNativeScroll = this.onNativeScroll.bind(this);
+      this.setup();
+    }
+
+    setup() {
+      this.container.style.willChange = 'transform';
+      this.container.style.transform = 'translateZ(0)';
+      this.container.addEventListener('wheel', this.onWheel, { passive: false });
+      this.container.addEventListener('scroll', this.onNativeScroll, { passive: true });
+      this.updateVisibleItems();
+    }
+
+    setItems(count) {
+      this.totalItems = count;
+      this.updateVisibleItems();
+    }
+
+    onWheel(e) {
+      e.preventDefault();
+      const now = performance.now();
+      const rapidScroll = now - this.lastWheelTime < 40;
+      this.lastWheelTime = now;
+      const multiplier = rapidScroll ? this.scrollPriorityBoost : 1;
+      const delta = e.deltaY * multiplier;
+      this.velocity += delta * 0.15;
+      this.velocity = Math.max(-120, Math.min(120, this.velocity));
+      if (!this.isAnimating) {
+        this.animate();
+      }
+    }
+
+    onNativeScroll() {
+      this.targetScroll = this.container.scrollTop;
+      this.updateVisibleItems();
+    }
+
+    animate() {
+      this.isAnimating = true;
+      const step = () => {
+        this.velocity *= 0.88;
+        if (Math.abs(this.velocity) < 0.08) {
+          this.velocity = 0;
+          this.isAnimating = false;
+          return;
+        }
+
+        this.targetScroll += this.velocity;
+        const maxScroll = Math.max(0, this.totalItems * this.itemHeight - this.container.clientHeight);
+        this.targetScroll = Math.max(0, Math.min(maxScroll, this.targetScroll));
+        this.currentScroll += (this.targetScroll - this.currentScroll) * 0.22;
+        this.container.scrollTop = this.currentScroll;
+        this.updateVisibleItems();
+        requestAnimationFrame(step);
+      };
+
+      requestAnimationFrame(step);
+    }
+
+    updateVisibleItems() {
+      if (this.frameRequested) return;
+      this.frameRequested = true;
+      requestAnimationFrame(() => {
+        const height = this.container.clientHeight;
+        const startIndex = Math.max(0, Math.floor(this.container.scrollTop / this.itemHeight) - this.buffer);
+        const visibleCount = Math.ceil(height / this.itemHeight) + this.buffer * 2;
+        const endIndex = Math.min(this.totalItems, startIndex + visibleCount);
+        this.renderCallback(startIndex, endIndex);
+        this.frameRequested = false;
+      });
+    }
+
+    destroy() {
+      this.container.removeEventListener('wheel', this.onWheel);
+      this.container.removeEventListener('scroll', this.onNativeScroll);
+    }
+  }
+
+  const LibraryTrackVirtualList = ({ tracks }) => {
+    const [range, setRange] = useState({ start: 0, end: Math.min(14, tracks.length) });
+    const listRef = useRef(null);
+    const itemHeight = 112;
+
+    useEffect(() => {
+      if (!listRef.current) return;
+      const scroller = new SmoothMusicScroller(listRef.current, (start, end) => setRange({ start, end }));
+      scroller.setItems(tracks.length);
+      setRange({ start: 0, end: Math.min(14, tracks.length) });
+      return () => scroller.destroy();
+    }, [tracks.length]);
+
+    const totalHeight = tracks.length * itemHeight;
+    const offsetY = range.start * itemHeight;
+
+    return (
+      <div
+        ref={listRef}
+        className="relative overflow-y-auto h-[64vh] rounded-3xl border border-white/10 bg-black/30 backdrop-blur-xl"
+        style={{ scrollBehavior: 'smooth' }}
+      >
+        <div style={{ height: totalHeight }} />
+        <div className="absolute inset-x-0" style={{ transform: `translateY(${offsetY}px)` }}>
+          {tracks.slice(range.start, range.end).map((track, idx) => (
+            <div
+              key={track.id || track._id || range.start + idx}
+              onClick={() => handleTrackSelect(track)}
+              className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
+            >
+              <div className="flex items-center gap-4">
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
+                  <img
+                    src={track.artwork_url}
+                    alt={track.title}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    {isPlaying && currentTrack?.id === track.id ? (
+                      <Pause size={20} className="text-white" />
+                    ) : (
+                      <Play size={20} className="text-white" />
+                    )}
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-white text-lg font-semibold truncate">{track.title}</h3>
+                  <p className="text-slate-400 truncate">{track.artist}</p>
+                  <p className="text-slate-500 text-sm mt-1">{track.album || 'Single'}</p>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <span className="text-slate-400 text-sm">{formatTime(track.duration || 0)}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleFavorite(track._id || track.id);
+                    }}
+                    className="rounded-full p-2"
+                  >
+                    <Heart
+                      size={18}
+                      fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'}
+                      className={isFavorite(track._id || track.id) ? 'text-red-500' : ''}
+                    />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   const handleUploadComplete = (uploadedTracks) => {
     setRecentTracks(prev => [...uploadedTracks, ...prev].slice(0, 20));
@@ -271,10 +654,62 @@ const ResonanceApp = () => {
     setSwipeStartX(null);
   };
 
+  const getQueueForCurrentView = () => {
+    if (currentView === 'search' && searchResults.length > 0) return searchResults;
+    if (currentView === 'favorites' && favorites.length > 0) return favorites;
+    return recentTracks;
+  };
+
   const handleYouTubeTrackSelect = (track) => {
     setRecentTracks(prev => [track, ...prev].slice(0, 20));
-    playTrack(track);
+    playTrack(track, recentTracks);
     setShowYouTubeSearch(false);
+  };
+
+  const handleTrackSelect = (track) => {
+    playTrack(track, getQueueForCurrentView());
+  };
+
+  const handleToggleFavorite = async (trackId) => {
+    try {
+      const added = await toggleFavorite(trackId);
+      toast({
+        title: 'Favorites updated',
+        description: added
+          ? 'Track added to your favorites.'
+          : 'Track removed from your favorites.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update favorite status.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleOpenPlaylistDialog = (track) => {
+    setPlaylistTrackTarget(track);
+    setShowPlaylistDialog(true);
+  };
+
+  const handleAddTrackToPlaylist = async (playlistId) => {
+    if (!playlistTrackTarget) return;
+    try {
+      await playlistAPI.addTrackToPlaylist(playlistId, playlistTrackTarget._id || playlistTrackTarget.id);
+      toast({
+        title: 'Added to playlist',
+        description: `${playlistTrackTarget.title} was added to your playlist.`,
+      });
+      setShowPlaylistDialog(false);
+      setPlaylistTrackTarget(null);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Could not add track to playlist.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const toggleRepeat = () => {
@@ -289,6 +724,7 @@ const ResonanceApp = () => {
     { id: 'home', label: 'Home', icon: Home },
     { id: 'search', label: 'Search', icon: Search },
     { id: 'library', label: 'Your Library', icon: Library },
+    { id: 'favorites', label: 'Favorites', icon: Heart },
   ];
 
   const Sidebar = () => (
@@ -452,7 +888,8 @@ const ResonanceApp = () => {
                     key={idx}
                     track={track}
                     onPlay={handleTrackSelect}
-                    onFavorite={(e) => handleToggleFavorite(e, track._id || track.id)}
+                    onFavorite={() => handleToggleFavorite(track._id || track.id)}
+                    onAddToPlaylist={handleOpenPlaylistDialog}
                     index={idx + 1}
                   />
                 ))}
@@ -577,6 +1014,7 @@ const ResonanceApp = () => {
       setSearchQuery(query);
       if (query.trim()) {
         searchTracks(query, 30);
+        searchArtists(query);
       } else {
         clearResults();
       }
@@ -660,16 +1098,38 @@ const ResonanceApp = () => {
                       key={idx}
                       track={track}
                       onPlay={handleTrackSelect}
-                      onFavorite={(e) => handleToggleFavorite(e, track._id || track.id)}
+                      onFavorite={() => handleToggleFavorite(track._id || track.id)}
+                      onAddToPlaylist={handleOpenPlaylistDialog}
                       index={idx + 1}
                     />
                   ))}
                 </div>
               ) : (
-                <div className="glass-card-dark p-12 text-center border-dashed border-2">
-                  <Search size={48} className="mx-auto mb-4 text-slate-500" />
-                  <h3 className="text-white text-xl font-semibold mb-2">No results found</h3>
-                  <p className="text-slate-400">Try searching for a different song, artist, or album.</p>
+                <div className="space-y-6">
+                  {searchArtistResults.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-semibold text-white">Artist matches</h2>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {searchArtistResults.map((artist, idx) => (
+                          <div key={idx} className="group overflow-hidden rounded-3xl glass-card-dark p-5 hover:-translate-y-1 hover:shadow-2xl transition-all cursor-pointer">
+                            <div className="h-32 rounded-3xl bg-slate-900 overflow-hidden mb-4">
+                              <img src={artist.sample_artwork || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop'} alt={artist.artist} className="h-full w-full object-cover" />
+                            </div>
+                            <h3 className="text-white text-lg font-semibold truncate">{artist.artist}</h3>
+                            <p className="text-slate-400 text-sm mt-1">{artist.track_count} tracks</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="glass-card-dark p-12 text-center border-dashed border-2">
+                      <Search size={48} className="mx-auto mb-4 text-slate-500" />
+                      <h3 className="text-white text-xl font-semibold mb-2">No results found</h3>
+                      <p className="text-slate-400">Try searching for a different song, artist, or album.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -693,7 +1153,8 @@ const ResonanceApp = () => {
                         key={idx}
                         track={track}
                         onPlay={handleTrackSelect}
-                        onFavorite={(e) => handleToggleFavorite(e, track._id || track.id)}
+                        onFavorite={() => handleToggleFavorite(track._id || track.id)}
+                        onAddToPlaylist={handleOpenPlaylistDialog}
                         index={idx + 1}
                       />
                     ))}
@@ -795,52 +1256,7 @@ const ResonanceApp = () => {
               {selectedPlaylist ? selectedPlaylist.name : 'All Tracks'}
             </h2>
             {recentTracks.length > 0 ? (
-              <div className="grid gap-4">
-                {recentTracks.map((track, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => handleTrackSelect(track)}
-                    className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
-                        <img
-                          src={track.artwork_url}
-                          alt={track.title}
-                          className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                          {isPlaying && currentTrack?.id === track.id ? (
-                            <Pause size={20} className="text-white" />
-                          ) : (
-                            <Play size={20} className="text-white" />
-                          )}
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-white text-lg font-semibold truncate">{track.title}</h3>
-                        <p className="text-slate-400 truncate">{track.artist}</p>
-                        <p className="text-slate-500 text-sm mt-1">{track.album || 'Single'}</p>
-                      </div>
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className="text-slate-400 text-sm">{formatTime(track.duration || 0)}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleToggleFavorite(e, track._id || track.id)}
-                          className="rounded-full p-2"
-                        >
-                          <Heart
-                            size={18}
-                            fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'}
-                            className={isFavorite(track._id || track.id) ? 'text-red-500' : ''}
-                          />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <LibraryTrackVirtualList tracks={recentTracks} />
             ) : (
               <div className="glass-card-dark p-12 text-center border-dashed border-2">
                 <Library size={48} className="mx-auto mb-4 text-slate-500" />
@@ -857,6 +1273,130 @@ const ResonanceApp = () => {
       </ScrollArea>
     );
   };
+
+  const FavoritesView = () => (
+    <ScrollArea className="flex-1">
+      <div className="p-6 md:p-8 space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-4xl font-semibold text-white">Favorites</h1>
+            <p className="text-slate-500 mt-2">{favorites.length} tracks you love.</p>
+          </div>
+          <Button
+            variant="outline"
+            className="glass-button-dark rounded-full px-5 py-3 text-slate-300 hover:text-white"
+            onClick={() => setCurrentView('library')}
+          >
+            Browse Library
+          </Button>
+        </div>
+
+        {favorites.length > 0 ? (
+          <div className="grid gap-4">
+            {favorites.map((track, idx) => (
+              <div
+                key={idx}
+                onClick={() => handleTrackSelect(track)}
+                className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
+                    <img
+                      src={track.artwork_url}
+                      alt={track.title}
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-white text-lg font-semibold truncate">{track.title}</h3>
+                    <p className="text-slate-400 truncate">{track.artist}</p>
+                    <p className="text-slate-500 text-sm mt-1">{track.album || 'Single'}</p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className="text-slate-400 text-sm">{formatTime(track.duration || 0)}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleFavorite(track._id || track.id)}
+                      className="rounded-full p-2"
+                    >
+                      <Heart
+                        size={18}
+                        fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'}
+                        className={isFavorite(track._id || track.id) ? 'text-red-500' : ''}
+                      />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card-dark p-12 text-center border-dashed border-2">
+            <Heart size={48} className="mx-auto mb-4 text-slate-500" />
+            <h3 className="text-white text-xl font-semibold mb-2">No favorites yet</h3>
+            <p className="text-slate-400 mb-6">Tap the heart icon on any track to save it here.</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button onClick={() => setCurrentView('library')} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Go to Library</Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </ScrollArea>
+  );
+
+  const CarModeView = () => (
+    <div className="fixed inset-0 z-50 bg-slate-950 text-white p-6 md:p-10 overflow-hidden">
+      <div className="h-full flex flex-col justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 uppercase tracking-[0.35em] text-sm">Car mode</p>
+              <h1 className="text-4xl font-semibold">Drive Safe</h1>
+            </div>
+            <button onClick={() => setCarMode(false)} className="rounded-full p-3 glass-button-dark text-slate-100 hover:glass-hover-dark">
+              <X size={22} />
+            </button>
+          </div>
+          <div className="mx-auto w-full max-w-md overflow-hidden rounded-[2.5rem] shadow-2xl shadow-white/10 ring-1 ring-white/20">
+            <img src={currentTrack.artwork_url} alt={currentTrack.title} className="w-full h-full object-cover" />
+          </div>
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-semibold text-white">{currentTrack.title}</h2>
+            <p className="text-slate-400 text-lg">{currentTrack.artist}</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="glass-dark rounded-3xl p-6">
+            <div className="flex items-center justify-between text-slate-400 text-sm mb-4">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+            <Slider
+              value={[duration > 0 ? (currentTime / duration) * 100 : 0]}
+              onValueChange={(value) => seek((value[0] / 100) * duration)}
+              max={100}
+              step={0.1}
+              className="w-full"
+            />
+          </div>
+
+          <div className="flex items-center justify-center gap-4">
+            <button onClick={playPrevious} className="rounded-full p-5 glass-button-dark">
+              <SkipBack size={26} />
+            </button>
+            <button onClick={togglePlayPause} className="rounded-full bg-white p-5 text-slate-950 shadow-xl shadow-white/20">
+              {isPlaying ? <Pause size={28} /> : <Play size={28} />}
+            </button>
+            <button onClick={playNext} className="rounded-full p-5 glass-button-dark">
+              <SkipForward size={26} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const FullPlayerView = () => (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-black via-slate-950 to-black text-white">
@@ -1029,8 +1569,31 @@ const ResonanceApp = () => {
   );
 
   return (
-    <div className="h-screen bg-slate-950 text-white flex overflow-hidden">
-      {/* Sidebar */}
+    <AppErrorBoundary>
+      {globalLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-6">
+          <div className="max-w-sm w-full glass-card-dark p-8 text-center">
+            <div className="mx-auto mb-5 h-14 w-14 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+            <h2 className="text-xl font-semibold text-white mb-2">Starting Resonance</h2>
+            <p className="text-slate-400">Loading your library and playback services.</p>
+          </div>
+        </div>
+      )}
+      {globalError && !globalLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-6">
+          <div className="max-w-md w-full glass-card-dark p-8 text-center">
+            <h2 className="text-2xl font-semibold text-white mb-3">Connection Error</h2>
+            <p className="text-slate-400 mb-6">{globalError}</p>
+            <div className="flex justify-center gap-3">
+              <Button onClick={initializeApp} className="bg-white text-slate-950 rounded-full px-5 py-3">
+                Retry
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="h-screen bg-slate-950 text-white flex">
+        {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content */}
@@ -1066,7 +1629,43 @@ const ResonanceApp = () => {
                 </Button>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className={`rounded-full w-8 h-8 p-0 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-700'}`}
+                title="Toggle dark/light theme"
+              >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setNotificationsEnabled((prev) => !prev)}
+                className={`rounded-full w-8 h-8 p-0 ${notificationsEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
+                title="Smart notifications"
+              >
+                <Bell size={18} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSyncEnabled((prev) => !prev)}
+                className={`rounded-full w-8 h-8 p-0 ${syncEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
+                title="Multi-device sync"
+              >
+                <Cloud size={18} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCarMode(!carMode)}
+                className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                title="Enter car mode"
+              >
+                <Music size={18} />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -1087,10 +1686,11 @@ const ResonanceApp = () => {
         </div>
 
         {/* Content Area */}
-        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden view-transition-${transitionDirection}`}>
+        <div className={`flex-1 flex flex-col min-w-0 view-transition-${transitionDirection} ${currentTrack ? 'pb-24' : ''}`}>
           {currentView === 'home' && <HomeView />}
           {currentView === 'search' && <SearchView />}
           {currentView === 'library' && <LibraryView />}
+          {currentView === 'favorites' && <FavoritesView />}
         </div>
 
         {/* Bottom Player Bar */}
@@ -1098,7 +1698,7 @@ const ResonanceApp = () => {
       </div>
 
       {/* Full Player Overlay */}
-      {isFullPlayer && currentTrack && <FullPlayerView />}
+      {carMode && currentTrack ? <CarModeView /> : isFullPlayer && currentTrack ? <FullPlayerView /> : null}
 
       {/* Upload Dialog */}
       <FileUploadDialog
@@ -1214,7 +1814,8 @@ const ResonanceApp = () => {
 
       {/* Toast Notifications */}
       <Toaster />
-    </div>
+        </div>
+    </AppErrorBoundary>
   );
 };
 

@@ -215,6 +215,29 @@ export const useAudioPlayer = () => {
     }
   }, [queue, currentIndex, shuffle, playTrackFromQueue]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    if (currentTrack && typeof MediaMetadata !== 'undefined') {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentTrack.title,
+        artist: currentTrack.artist,
+        album: currentTrack.album || 'Resonance',
+        artwork: [
+          { src: currentTrack.artwork_url, sizes: '512x512', type: 'image/png' },
+        ],
+      });
+    }
+
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+    navigator.mediaSession.setActionHandler('play', play);
+    navigator.mediaSession.setActionHandler('pause', pause);
+    navigator.mediaSession.setActionHandler('previoustrack', playPrevious);
+    navigator.mediaSession.setActionHandler('nexttrack', playNext);
+    navigator.mediaSession.setActionHandler('stop', pause);
+  }, [currentTrack, isPlaying, play, pause, playNext, playPrevious]);
+
   const addToQueue = useCallback((tracks) => {
     setQueue(prevQueue => [...prevQueue, ...tracks]);
   }, []);
@@ -239,6 +262,26 @@ export const useAudioPlayer = () => {
     });
   }, [currentIndex, loadTrack]);
 
+  const moveQueueItem = useCallback((index, direction) => {
+    setQueue((prevQueue) => {
+      const nextIndex = index + direction;
+      if (nextIndex < 0 || nextIndex >= prevQueue.length) return prevQueue;
+
+      const newQueue = [...prevQueue];
+      const [moved] = newQueue.splice(index, 1);
+      newQueue.splice(nextIndex, 0, moved);
+
+      setCurrentIndex((current) => {
+        if (current === index) return nextIndex;
+        if (index < current && nextIndex >= current) return current - 1;
+        if (index > current && nextIndex <= current) return current + 1;
+        return current;
+      });
+
+      return newQueue;
+    });
+  }, []);
+
   const clearQueue = useCallback(() => {
     setQueue([]);
     setCurrentIndex(0);
@@ -258,13 +301,11 @@ export const useAudioPlayer = () => {
         case 'ArrowRight':
         case 'KeyN':
           if (e.ctrlKey || e.metaKey) return;
-          e.preventDefault();
           playNext();
           break;
         case 'ArrowLeft':
         case 'KeyP':
           if (e.ctrlKey || e.metaKey) return;
-          e.preventDefault();
           playPrevious();
           break;
         case 'KeyS':
