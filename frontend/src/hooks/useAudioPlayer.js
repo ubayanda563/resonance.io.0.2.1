@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { trackAPI, youtubeAPI } from '../services/api';
 
 export const useAudioPlayer = () => {
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -13,9 +12,8 @@ export const useAudioPlayer = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState('none'); // 'none', 'track', 'playlist'
-  
+
   const audioRef = useRef(null);
-  const intervalRef = useRef(null);
 
   // Initialize audio element
   useEffect(() => {
@@ -26,32 +24,16 @@ export const useAudioPlayer = () => {
 
     const audio = audioRef.current;
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-      setIsLoading(false);
-    };
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleEnded = () => {
-      handleTrackEnd();
-    };
-
-    const handleError = (e) => {
-      setError('Failed to load audio');
+    const handleLoadedMetadata = () => setDuration(audio.duration);
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handleEnded = () => handleTrackEnd();
+    const handleError = () => {
+      setError('Failed to load audio. Make sure the file exists and is a supported format (MP3, WAV, OGG, FLAC).');
       setIsLoading(false);
       setIsPlaying(false);
     };
-
-    const handleCanPlay = () => {
-      setIsLoading(false);
-    };
-
-    const handleLoadStart = () => {
-      setIsLoading(true);
-    };
+    const handleCanPlay = () => setIsLoading(false);
+    const handleLoadStart = () => setIsLoading(true);
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -70,7 +52,7 @@ export const useAudioPlayer = () => {
     };
   }, []);
 
-  // Update audio volume
+  // Update volume
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = Math.min(Math.max(volume / 100, 0), 1);
@@ -82,51 +64,60 @@ export const useAudioPlayer = () => {
     return track.id || track.file_url || track.title;
   }, []);
 
-  const loadTrack = useCallback(async (track) => {
-    if (!audioRef.current) return;
+  // ✅ FIXED: Returns a Promise that resolves when audio is ready to play
+  const loadTrack = useCallback((track) => {
+    return new Promise((resolve, reject) => {
+      if (!audioRef.current) return reject(new Error('Audio not initialized'));
 
-    setError(null);
-    setIsLoading(true);
-    
-    try {
-      let audioUrl;
-      
-      if (track.source === 'local') {
-        audioUrl = trackAPI.getStreamUrl(track.id);
-      } else if (track.source === 'youtube') {
-        audioUrl = await youtubeAPI.getStreamUrl(track.youtube_id);
-      } else if (track.source === 'browser' && track.file_url) {
-        audioUrl = track.file_url;
-      } else if (track.file_url) {
-        audioUrl = track.file_url;
+      setError(null);
+      setIsLoading(true);
+
+      // ✅ Local files only — use file_url (blob URL from file picker) or a local server URL
+      const audioUrl = track.file_url || null;
+
+      if (!audioUrl) {
+        const err = new Error('No local audio file available for this track.');
+        setError(err.message);
+        setIsLoading(false);
+        return reject(err);
       }
 
-      if (audioUrl) {
-        audioRef.current.src = audioUrl;
-        setCurrentTrack(track);
-        
-        // Load the audio and allow event handlers to update duration/state
-        audioRef.current.load();
-      } else {
-        throw new Error('No audio URL available');
-      }
-    } catch (error) {
-      console.error('Error loading track:', error);
-      setError('Failed to load track');
-      setIsLoading(false);
-    }
+      // ✅ Wait for canplay before resolving so play() doesn't fire too early
+      const onCanPlay = () => {
+        cleanup();
+        resolve();
+      };
+
+      const onError = () => {
+        cleanup();
+        setError('Failed to load audio file. Check the file path or format.');
+        setIsLoading(false);
+        reject(new Error('Audio load error'));
+      };
+
+      const cleanup = () => {
+        audioRef.current.removeEventListener('canplay', onCanPlay);
+        audioRef.current.removeEventListener('error', onError);
+      };
+
+      audioRef.current.addEventListener('canplay', onCanPlay);
+      audioRef.current.addEventListener('error', onError);
+
+      audioRef.current.src = audioUrl;
+      setCurrentTrack(track);
+      audioRef.current.load();
+    });
   }, []);
 
   const play = useCallback(async () => {
     if (!audioRef.current || !currentTrack) return;
-
     try {
       await audioRef.current.play();
       setIsPlaying(true);
       setError(null);
-    } catch (error) {
-      console.error('Error playing audio:', error);
-      setError('Failed to play audio');
+    } catch (err) {
+      console.error('Playback error:', err);
+      setError('Failed to play. Try clicking play again.');
       setIsPlaying(false);
     }
   }, [currentTrack]);
@@ -153,84 +144,86 @@ export const useAudioPlayer = () => {
     }
   }, []);
 
-  const handleTrackEnd = useCallback(() => {
-    if (repeat === 'track') {
-      // Repeat current track
-      audioRef.current.currentTime = 0;
-      play();
-    } else if (repeat === 'playlist' && queue.length > 0) {
-      // Move to next track or loop to beginning
-      const nextIndex = currentIndex + 1 >= queue.length ? 0 : currentIndex + 1;
-      playTrackFromQueue(nextIndex);
-    } else if (currentIndex + 1 < queue.length) {
-      // Play next track
-      playTrackFromQueue(currentIndex + 1);
-    } else {
-      // End of queue
-      setIsPlaying(false);
-    }
-  }, [repeat, queue, currentIndex]);
-
-  const playTrack = useCallback(async (track, trackQueue = []) => {
-    await loadTrack(track);
-    
-    if (trackQueue.length > 0) {
-      setQueue(trackQueue);
-      const trackKey = getTrackKey(track);
-      const index = trackQueue.findIndex((t) => getTrackKey(t) === trackKey);
-      setCurrentIndex(index >= 0 ? index : 0);
-    }
-    
-    await play();
-  }, [getTrackKey, loadTrack, play]);
-
   const playTrackFromQueue = useCallback(async (index) => {
     if (index >= 0 && index < queue.length) {
       setCurrentIndex(index);
-      await playTrack(queue[index]);
+      try {
+        await loadTrack(queue[index]);
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch (err) {
+        console.error('Error playing from queue:', err);
+      }
     }
-  }, [queue, playTrack]);
+  }, [queue, loadTrack]);
+
+  // ✅ FIXED: Added missing dependencies
+  const handleTrackEnd = useCallback(() => {
+    if (repeat === 'track') {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    } else if (repeat === 'playlist' && queue.length > 0) {
+      const nextIndex = currentIndex + 1 >= queue.length ? 0 : currentIndex + 1;
+      playTrackFromQueue(nextIndex);
+    } else if (currentIndex + 1 < queue.length) {
+      playTrackFromQueue(currentIndex + 1);
+    } else {
+      setIsPlaying(false);
+    }
+  }, [repeat, queue, currentIndex, playTrackFromQueue]);
+
+  // ✅ FIXED: Waits for audio to be ready before playing
+  const playTrack = useCallback(async (track, trackQueue = []) => {
+    try {
+      if (trackQueue.length > 0) {
+        setQueue(trackQueue);
+        const trackKey = getTrackKey(track);
+        const index = trackQueue.findIndex((t) => getTrackKey(t) === trackKey);
+        setCurrentIndex(index >= 0 ? index : 0);
+      }
+
+      await loadTrack(track);           // ✅ waits until audio is truly ready
+      await audioRef.current.play();    // ✅ then plays safely
+      setIsPlaying(true);
+    } catch (err) {
+      console.error('Error in playTrack:', err);
+    }
+  }, [getTrackKey, loadTrack]);
 
   const playNext = useCallback(() => {
     if (queue.length > 0) {
-      let nextIndex;
-      if (shuffle) {
-        nextIndex = Math.floor(Math.random() * queue.length);
-      } else {
-        nextIndex = currentIndex + 1 < queue.length ? currentIndex + 1 : 0;
-      }
+      const nextIndex = shuffle
+        ? Math.floor(Math.random() * queue.length)
+        : currentIndex + 1 < queue.length ? currentIndex + 1 : 0;
       playTrackFromQueue(nextIndex);
     }
   }, [queue, currentIndex, shuffle, playTrackFromQueue]);
 
   const playPrevious = useCallback(() => {
     if (queue.length > 0) {
-      let prevIndex;
-      if (shuffle) {
-        prevIndex = Math.floor(Math.random() * queue.length);
-      } else {
-        prevIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : queue.length - 1;
-      }
+      const prevIndex = shuffle
+        ? Math.floor(Math.random() * queue.length)
+        : currentIndex - 1 >= 0 ? currentIndex - 1 : queue.length - 1;
       playTrackFromQueue(prevIndex);
     }
   }, [queue, currentIndex, shuffle, playTrackFromQueue]);
 
+  // Media Session API (lock screen / OS media controls)
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
 
-    if (currentTrack && typeof MediaMetadata !== 'undefined') {
+    if (currentTrack) {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentTrack.title,
-        artist: currentTrack.artist,
+        title: currentTrack.title || 'Unknown Title',
+        artist: currentTrack.artist || 'Unknown Artist',
         album: currentTrack.album || 'Resonance',
-        artwork: [
-          { src: currentTrack.artwork_url, sizes: '512x512', type: 'image/png' },
-        ],
+        artwork: currentTrack.artwork_url
+          ? [{ src: currentTrack.artwork_url, sizes: '512x512', type: 'image/png' }]
+          : [],
       });
     }
 
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-
     navigator.mediaSession.setActionHandler('play', play);
     navigator.mediaSession.setActionHandler('pause', pause);
     navigator.mediaSession.setActionHandler('previoustrack', playPrevious);
@@ -239,48 +232,21 @@ export const useAudioPlayer = () => {
   }, [currentTrack, isPlaying, play, pause, playNext, playPrevious]);
 
   const addToQueue = useCallback((tracks) => {
-    setQueue(prevQueue => [...prevQueue, ...tracks]);
+    setQueue(prev => [...prev, ...tracks]);
   }, []);
 
   const removeFromQueue = useCallback((index) => {
-    setQueue(prevQueue => {
-      const newQueue = [...prevQueue];
+    setQueue(prev => {
+      const newQueue = [...prev];
       newQueue.splice(index, 1);
-      
-      // Adjust current index if necessary
       if (index < currentIndex) {
-        setCurrentIndex(prev => prev - 1);
+        setCurrentIndex(i => i - 1);
       } else if (index === currentIndex && newQueue.length > 0) {
-        // If we removed the current track, play the next one
-        const nextTrack = newQueue[Math.min(currentIndex, newQueue.length - 1)];
-        if (nextTrack) {
-          loadTrack(nextTrack);
-        }
+        loadTrack(newQueue[Math.min(currentIndex, newQueue.length - 1)]);
       }
-      
       return newQueue;
     });
   }, [currentIndex, loadTrack]);
-
-  const moveQueueItem = useCallback((index, direction) => {
-    setQueue((prevQueue) => {
-      const nextIndex = index + direction;
-      if (nextIndex < 0 || nextIndex >= prevQueue.length) return prevQueue;
-
-      const newQueue = [...prevQueue];
-      const [moved] = newQueue.splice(index, 1);
-      newQueue.splice(nextIndex, 0, moved);
-
-      setCurrentIndex((current) => {
-        if (current === index) return nextIndex;
-        if (index < current && nextIndex >= current) return current - 1;
-        if (index > current && nextIndex <= current) return current + 1;
-        return current;
-      });
-
-      return newQueue;
-    });
-  }, []);
 
   const clearQueue = useCallback(() => {
     setQueue([]);
@@ -290,9 +256,7 @@ export const useAudioPlayer = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't trigger shortcuts when typing in input fields
       if (e.target.matches('input, textarea')) return;
-
       switch (e.code) {
         case 'Space':
           e.preventDefault();
@@ -316,11 +280,9 @@ export const useAudioPlayer = () => {
         case 'KeyR':
           if (e.ctrlKey || e.metaKey) return;
           e.preventDefault();
-          setRepeat(prev => {
-            if (prev === 'none') return 'playlist';
-            if (prev === 'playlist') return 'track';
-            return 'none';
-          });
+          setRepeat(prev =>
+            prev === 'none' ? 'playlist' : prev === 'playlist' ? 'track' : 'none'
+          );
           break;
         case 'ArrowUp':
           e.preventDefault();
@@ -342,9 +304,8 @@ export const useAudioPlayer = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlayPause, playNext, playPrevious, setShuffle, setRepeat, setVolume]);
+  }, [togglePlayPause, playNext, playPrevious]);
 
-  // Format time helpers
   const formatTime = useCallback((seconds) => {
     if (isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
@@ -353,7 +314,6 @@ export const useAudioPlayer = () => {
   }, []);
 
   return {
-    // State
     currentTrack,
     isPlaying,
     currentTime,
@@ -365,8 +325,6 @@ export const useAudioPlayer = () => {
     currentIndex,
     shuffle,
     repeat,
-    
-    // Actions
     playTrack,
     togglePlayPause,
     play,
@@ -377,14 +335,10 @@ export const useAudioPlayer = () => {
     setVolume,
     setShuffle,
     setRepeat,
-    
-    // Queue management
     addToQueue,
     removeFromQueue,
     clearQueue,
     playTrackFromQueue,
-    
-    // Helpers
-    formatTime
+    formatTime,
   };
 };
