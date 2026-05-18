@@ -761,62 +761,69 @@ const ResonanceApp = () => {
   ];
 
   const Sidebar = () => (
-    <div className={`${sidebarCollapsed ? 'w-20' : 'w-72'} relative glass-surface-dark border-r border-white/15 text-slate-100 flex flex-col transition-all duration-300`}> 
-      <div className="p-6 border-b border-white/10 glass-surface-dark">
+    <div className={`${sidebarCollapsed ? 'w-20' : 'w-72'} h-full glass-surface-dark border-r border-white/15 text-slate-100 flex flex-col transition-all duration-300`}> 
+      <div className="p-4 md:p-6 border-b border-white/10 glass-surface-dark">
         <div className="flex items-center gap-3">
           {githubAvatar && (
-            <div className="w-10 h-10 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-lg shadow-white/10">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-lg shadow-white/10">
               <img src={githubAvatar} alt="Resonance" className="w-full h-full object-cover" />
             </div>
           )}
           {!sidebarCollapsed && (
-            <div>
-              <h1 className="text-xl font-semibold tracking-wide text-white">Resonance</h1>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400 mt-1">Music player</p>
+            <div className="animate-in fade-in slide-in-from-left-2 duration-300">
+              <h1 className="text-lg md:text-xl font-semibold tracking-wide text-white">Resonance</h1>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400 mt-0.5 md:mt-1">Music player</p>
             </div>
           )}
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-5 space-y-2">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setCurrentView(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${
-                currentView === item.id
-                  ? 'glass-surface text-white shadow-lg shadow-white/10'
-                  : 'text-slate-400 hover:text-white hover:glass-surface-dark'
-              }`}
-            >
-              <Icon size={22} />
-              {!sidebarCollapsed && <span className="text-sm font-medium">{item.label}</span>}
-            </button>
-          );
-        })}
+      <ScrollArea className="flex-1 px-3 py-5">
+        <div className="space-y-2">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setCurrentView(item.id);
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                    setSidebarCollapsed(true);
+                  }
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  currentView === item.id
+                    ? 'glass-surface text-white shadow-lg shadow-white/10'
+                    : 'text-slate-400 hover:text-white hover:glass-surface-dark'
+                }`}
+              >
+                <Icon size={22} />
+                {!sidebarCollapsed && <span className="text-sm font-medium">{item.label}</span>}
+              </button>
+            );
+          })}
 
-        <div className="mt-8 space-y-2">
-          <div className="px-4 pb-2">
-            {!sidebarCollapsed && <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400">Library</h3>}
+          <div className="mt-8 space-y-2">
+            <div className="px-4 pb-2">
+              {!sidebarCollapsed && <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400">Library</h3>}
+            </div>
+            <button
+              onClick={() => setShowUploadDialog(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-200 hover:text-white glass-button-dark"
+            >
+              <Plus size={22} />
+              {!sidebarCollapsed && <span className="text-sm font-medium">Add Music</span>}
+            </button>
+            <button
+              onClick={() => setShowYouTubeSearch(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-200 hover:text-white glass-button-dark"
+            >
+              <Youtube size={22} />
+              {!sidebarCollapsed && <span className="text-sm font-medium">YouTube</span>}
+            </button>
           </div>
-          <button
-            onClick={() => setShowUploadDialog(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-200 hover:text-white glass-button-dark"
-          >
-            <Plus size={22} />
-            {!sidebarCollapsed && <span className="text-sm font-medium">Add Music</span>}
-          </button>
-          <button
-            onClick={() => setShowYouTubeSearch(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-200 hover:text-white glass-button-dark"
-          >
-            <Youtube size={22} />
-            {!sidebarCollapsed && <span className="text-sm font-medium">YouTube</span>}
-          </button>
         </div>
-      </nav>
+      </ScrollArea>
 
       <div className="p-4 border-t border-white/10 glass-surface-dark">
         <div className="flex items-center gap-3">
@@ -1644,110 +1651,140 @@ const ResonanceApp = () => {
           </div>
         </div>
       )}
-      <div className="h-screen bg-slate-950 text-white flex">
-        {/* Sidebar */}
-      <Sidebar />
+      <div className="h-screen bg-slate-950 text-white flex overflow-hidden">
+        {/* Sidebar - Desktop */}
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
-        {/* Header */}
-        <div className="glass-surface-dark p-6 border-b border-white/15">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="text-slate-400 hover:text-white"
-              >
-                <Menu size={20} />
-              </Button>
-              <div className="flex items-center gap-2">
+        {/* Sidebar - Mobile (Sheet) */}
+        <Sheet open={!sidebarCollapsed && typeof window !== 'undefined' && window.innerWidth < 1024} onOpenChange={(open) => setSidebarCollapsed(!open)}>
+          <SheetContent side="left" className="p-0 w-72 bg-slate-950 border-white/15">
+            <Sidebar />
+          </SheetContent>
+        </Sheet>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0 relative" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
+          {/* Header */}
+          <div className="glass-surface-dark p-4 md:p-6 border-b border-white/15">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 md:gap-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.history.back()}
-                  className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="text-slate-400 hover:text-white"
                 >
-                  <ArrowLeft size={16} />
+                  <Menu size={20} />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => window.history.forward()}
-                  className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
-                >
-                  <ChevronRight size={16} />
-                </Button>
+                <div className="hidden sm:flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.history.back()}
+                    className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  >
+                    <ArrowLeft size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.history.forward()}
+                    className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  >
+                    <ChevronRight size={16} />
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className={`rounded-full w-8 h-8 p-0 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-700'}`}
-                title="Toggle dark/light theme"
-              >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setNotificationsEnabled((prev) => !prev)}
-                className={`rounded-full w-8 h-8 p-0 ${notificationsEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
-                title="Smart notifications"
-              >
-                <Bell size={18} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSyncEnabled((prev) => !prev)}
-                className={`rounded-full w-8 h-8 p-0 ${syncEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
-                title="Multi-device sync"
-              >
-                <Cloud size={18} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCarMode(!carMode)}
-                className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
-                title="Enter car mode"
-              >
-                <Music size={18} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowKeyboardHelp(true)}
-                className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
-                title="Keyboard shortcuts"
-              >
-                <HelpCircle size={18} />
-              </Button>
-              <Button className="glass-button rounded-full px-4 py-2 text-sm font-medium">
-                Upgrade
-              </Button>
-              <div className="w-8 h-8 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center ring-1 ring-white/20">
-                <User size={16} className="text-slate-300" />
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="hidden md:flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className={`rounded-full w-8 h-8 p-0 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-700'}`}
+                    title="Toggle dark/light theme"
+                  >
+                    {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setNotificationsEnabled((prev) => !prev)}
+                    className={`rounded-full w-8 h-8 p-0 ${notificationsEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
+                    title="Smart notifications"
+                  >
+                    <Bell size={18} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSyncEnabled((prev) => !prev)}
+                    className={`rounded-full w-8 h-8 p-0 ${syncEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
+                    title="Multi-device sync"
+                  >
+                    <Cloud size={18} />
+                  </Button>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCarMode(!carMode)}
+                  className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  title="Enter car mode"
+                >
+                  <Music size={18} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowKeyboardHelp(true)}
+                  className="hidden md:flex text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  title="Keyboard shortcuts"
+                >
+                  <HelpCircle size={18} />
+                </Button>
+                <Button className="glass-button rounded-full px-4 py-2 text-xs md:text-sm font-medium">
+                  Upgrade
+                </Button>
+                <div className="w-8 h-8 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center ring-1 ring-white/20">
+                  <User size={16} className="text-slate-300" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Content Area */}
-        <div className={`flex-1 flex flex-col min-w-0 view-transition-${transitionDirection} ${currentTrack ? 'pb-24' : ''}`}>
-          {currentView === 'home' && <HomeView />}
-          {currentView === 'search' && <SearchView />}
-          {currentView === 'library' && <LibraryView />}
-          {currentView === 'favorites' && <FavoritesView />}
-        </div>
+          {/* Content Area */}
+          <div className={`flex-1 flex flex-col min-w-0 view-transition-${transitionDirection} ${currentTrack ? 'pb-32 md:pb-24' : 'pb-20 lg:pb-0'}`}>
+            {currentView === 'home' && <HomeView />}
+            {currentView === 'search' && <SearchView />}
+            {currentView === 'library' && <LibraryView />}
+            {currentView === 'favorites' && <FavoritesView />}
+          </div>
 
-        {/* Bottom Player Bar */}
-        {currentTrack && <BottomPlayerBar />}
-      </div>
+          {/* Bottom Navigation (Mobile Only) */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-surface-dark border-t border-white/15 px-6 py-3 flex items-center justify-between">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentView(item.id)}
+                  className={`flex flex-col items-center gap-1 transition-colors ${
+                    currentView === item.id ? 'text-white' : 'text-slate-500'
+                  }`}
+                >
+                  <Icon size={20} />
+                  <span className="text-[10px] font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Bottom Player Bar */}
+          {currentTrack && <BottomPlayerBar />}
+        </div>
 
       {/* Full Player Overlay */}
       {carMode && currentTrack ? <CarModeView /> : isFullPlayer && currentTrack ? <FullPlayerView /> : null}
