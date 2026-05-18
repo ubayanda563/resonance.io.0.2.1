@@ -15,7 +15,7 @@ from urllib.parse import quote
 class ResonanceMusicPlayerTester:
     def __init__(self):
         # Get backend URL from frontend .env file
-        frontend_env_path = "/app/frontend/.env"
+        frontend_env_path = "frontend/.env"
         self.base_url = self._get_backend_url(frontend_env_path)
         self.api_url = f"{self.base_url}/api"
         self.session = requests.Session()

@@ -36,7 +36,7 @@ import {
   Bell,
   Cloud,
 } from 'lucide-react';
-import { trackAPI, handleApiError, recommendationsAPI, playlistAPI } from '../services/api';
+import { trackAPI, handleApiError, recommendationsAPI, playlistAPI, youtubeAPI } from '../services/api';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 import { useSearch } from '../hooks/useSearch';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
@@ -106,6 +106,7 @@ const ResonanceApp = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [githubAvatar, setGithubAvatar] = useState('');
   const [recentTracks, setRecentTracks] = useState([]);
+  const [libraryTracks, setLibraryTracks] = useState([]);
   const [trendingTracks, setTrendingTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(true);
@@ -189,15 +190,17 @@ const ResonanceApp = () => {
     addToQueue,
     removeFromQueue,
     clearQueue,
-  } = useAudioPlayer();
+    isOnline,
+  } = useAudioPlayer(trackAPI, youtubeAPI);
 
   // Fetch GitHub avatar
   useEffect(() => {
+    if (!isOnline) return;
     fetch('https://api.github.com/users/Moodstlbn')
       .then(res => res.json())
       .then(data => setGithubAvatar(data.avatar_url))
       .catch(() => setGithubAvatar('https://github.com/Moodstlbn.png'));
-  }, []);
+  }, [isOnline]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -317,13 +320,30 @@ const ResonanceApp = () => {
     setGlobalLoading(true);
 
     try {
-      await Promise.all([
-        loadRecentTracks({ suppressToast: true }),
-        loadTrendingTracks(),
-      ]);
+      if (isOnline) {
+        await Promise.all([
+          loadRecentTracks({ suppressToast: true }),
+          loadLibraryTracks(),
+          loadTrendingTracks(),
+        ]);
+      } else {
+        // Load from offline storage
+        const { getOfflineTracks } = await import('../lib/offlineStorage');
+        const offlineTracks = await getOfflineTracks();
+        setLibraryTracks(offlineTracks);
+        setRecentTracks(offlineTracks.slice(0, 20));
+        toast({
+          title: "Offline Mode",
+          description: "You are currently offline. Showing only downloaded tracks.",
+        });
+      }
     } catch (error) {
-      const errorInfo = handleApiError(error);
-      setGlobalError(errorInfo.message || 'Unable to load your music experience.');
+      if (isOnline) {
+        const errorInfo = handleApiError(error);
+        setGlobalError(errorInfo.message || 'Unable to load your music experience.');
+      } else {
+        console.error('Failed to load offline tracks:', error);
+      }
     } finally {
       setGlobalLoading(false);
     }
@@ -331,7 +351,7 @@ const ResonanceApp = () => {
 
   useEffect(() => {
     initializeApp();
-  }, []);
+  }, [isOnline]);
 
   const loadRecentTracks = async ({ suppressToast = false } = {}) => {
     setIsLoading(true);
@@ -364,6 +384,15 @@ const ResonanceApp = () => {
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadLibraryTracks = async () => {
+    try {
+      const tracks = await trackAPI.getTracks({ limit: 200 });
+      setLibraryTracks(tracks);
+    } catch (error) {
+      console.error('Failed to load library tracks:', error);
     }
   };
 
@@ -592,11 +621,13 @@ const ResonanceApp = () => {
 
   const handleUploadComplete = (uploadedTracks) => {
     setRecentTracks(prev => [...uploadedTracks, ...prev].slice(0, 20));
+    setLibraryTracks(prev => [...uploadedTracks, ...prev]);
     setShowUploadDialog(false);
   };
 
   const handleLocalFilePlay = (track) => {
     setRecentTracks(prev => [track, ...prev].slice(0, 20));
+    setLibraryTracks(prev => [track, ...prev]);
     playTrack(track);
     setShowUploadDialog(false);
   };
@@ -657,12 +688,14 @@ const ResonanceApp = () => {
   const getQueueForCurrentView = () => {
     if (currentView === 'search' && searchResults.length > 0) return searchResults;
     if (currentView === 'favorites' && favorites.length > 0) return favorites;
+    if (currentView === 'library' && libraryTracks.length > 0) return libraryTracks;
     return recentTracks;
   };
 
   const handleYouTubeTrackSelect = (track) => {
     setRecentTracks(prev => [track, ...prev].slice(0, 20));
-    playTrack(track, recentTracks);
+    setLibraryTracks(prev => [track, ...prev]);
+    playTrack(track, [track, ...recentTracks]);
     setShowYouTubeSearch(false);
   };
 
@@ -1191,6 +1224,10 @@ const ResonanceApp = () => {
     const [selectedPlaylist, setSelectedPlaylist] = useState(null);
     const [showPlaylistTracks, setShowPlaylistTracks] = useState(false);
 
+    const displayTracks = selectedPlaylist 
+      ? libraryTracks.filter(t => (selectedPlaylist.tracks || []).includes(t.id || t._id))
+      : libraryTracks;
+
     return (
       <ScrollArea className="flex-1">
         <div className="p-6 md:p-8 space-y-8">
@@ -1198,7 +1235,7 @@ const ResonanceApp = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-4xl font-semibold text-white">Your Library</h1>
-              <p className="text-slate-500 mt-2">{recentTracks.length} songs in your collection</p>
+              <p className="text-slate-500 mt-2">{libraryTracks.length} songs in your collection</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -1255,8 +1292,8 @@ const ResonanceApp = () => {
             <h2 className="text-2xl font-semibold text-white">
               {selectedPlaylist ? selectedPlaylist.name : 'All Tracks'}
             </h2>
-            {recentTracks.length > 0 ? (
-              <LibraryTrackVirtualList tracks={recentTracks} />
+            {displayTracks.length > 0 ? (
+              <LibraryTrackVirtualList tracks={displayTracks} />
             ) : (
               <div className="glass-card-dark p-12 text-center border-dashed border-2">
                 <Library size={48} className="mx-auto mb-4 text-slate-500" />
@@ -1431,9 +1468,24 @@ const ResonanceApp = () => {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <button className="glass-button-dark rounded-full px-5 py-3 text-white hover:glass-hover-dark">Lyrics</button>
-              <button className="glass-button-dark rounded-full px-5 py-3 text-white hover:glass-hover-dark">Share</button>
-              <button className="glass-button-dark rounded-full px-5 py-3 text-white hover:glass-hover-dark">Spotify</button>
+              <button 
+                onClick={() => toast({ title: "Lyrics coming soon", description: "This feature is currently under development." })}
+                className="glass-button-dark rounded-full px-5 py-3 text-white hover:glass-hover-dark"
+              >
+                Lyrics
+              </button>
+              <button 
+                onClick={() => toast({ title: "Share coming soon", description: "Sharing features are on our roadmap!" })}
+                className="glass-button-dark rounded-full px-5 py-3 text-white hover:glass-hover-dark"
+              >
+                Share
+              </button>
+              <button 
+                onClick={() => toast({ title: "Spotify integration", description: "Spotify sync is coming in a future update." })}
+                className="glass-button-dark rounded-full px-5 py-3 text-white hover:glass-hover-dark"
+              >
+                Spotify
+              </button>
             </div>
 
             <div className="w-full max-w-xl glass-dark rounded-2xl p-5">

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { getOfflineTracks } from '../lib/offlineStorage';
 
-export const useAudioPlayer = () => {
+export const useAudioPlayer = (trackAPI, youtubeAPI) => {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -12,8 +13,23 @@ export const useAudioPlayer = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState('none'); // 'none', 'track', 'playlist'
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   const audioRef = useRef(null);
+
+  // Monitor online status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Initialize audio element
   useEffect(() => {
@@ -61,27 +77,59 @@ export const useAudioPlayer = () => {
 
   const getTrackKey = useCallback((track) => {
     if (!track) return null;
-    return track.id || track.file_url || track.title;
+    return track.id || track._id || track.file_url || track.title;
   }, []);
 
-  // ✅ FIXED: Returns a Promise that resolves when audio is ready to play
-  const loadTrack = useCallback((track) => {
-    return new Promise((resolve, reject) => {
-      if (!audioRef.current) return reject(new Error('Audio not initialized'));
+  // ✅ ENHANCED: Returns a Promise that resolves when audio is ready to play
+  // Now handles YouTube, local server streams, and offline tracks
+  const loadTrack = useCallback(async (track) => {
+    if (!audioRef.current) throw new Error('Audio not initialized');
 
-      setError(null);
-      setIsLoading(true);
+    setError(null);
+    setIsLoading(true);
 
-      // ✅ Local files only — use file_url (blob URL from file picker) or a local server URL
-      const audioUrl = track.file_url || null;
+    let audioUrl = track.file_url;
 
-      if (!audioUrl) {
-        const err = new Error('No local audio file available for this track.');
-        setError(err.message);
-        setIsLoading(false);
-        return reject(err);
+    // 1. Check if track is already an offline blob
+    if (track.source === 'offline' && track.audio_blob) {
+      audioUrl = URL.createObjectURL(track.audio_blob);
+    }
+
+    // 2. If offline, check IndexedDB even if track wasn't explicitly from 'offline' source
+    if (!audioUrl && !isOnline) {
+      try {
+        const offlineTracks = await getOfflineTracks();
+        const trackKey = getTrackKey(track);
+        const offlineTrack = offlineTracks.find(t => getTrackKey(t) === trackKey);
+        if (offlineTrack && offlineTrack.audio_blob) {
+          audioUrl = URL.createObjectURL(offlineTrack.audio_blob);
+        }
+      } catch (err) {
+        console.error('Failed to find offline track:', err);
       }
+    }
 
+    // 3. If still no URL and online, try to get from backend
+    if (!audioUrl && isOnline) {
+      try {
+        if (track.source === 'youtube' && track.youtube_id && youtubeAPI) {
+          audioUrl = await youtubeAPI.getStreamUrl(track.youtube_id);
+        } else if ((track.id || track._id) && trackAPI) {
+          audioUrl = trackAPI.getStreamUrl(track.id || track._id);
+        }
+      } catch (err) {
+        console.error('Failed to get stream URL:', err);
+      }
+    }
+
+    if (!audioUrl) {
+      const err = new Error(isOnline ? 'No audio source available for this track.' : 'Internet connection required for this track.');
+      setError(err.message);
+      setIsLoading(false);
+      throw err;
+    }
+
+    return new Promise((resolve, reject) => {
       // ✅ Wait for canplay before resolving so play() doesn't fire too early
       const onCanPlay = () => {
         cleanup();
@@ -107,7 +155,7 @@ export const useAudioPlayer = () => {
       setCurrentTrack(track);
       audioRef.current.load();
     });
-  }, []);
+  }, [trackAPI, youtubeAPI, isOnline, getTrackKey]);
 
   const play = useCallback(async () => {
     if (!audioRef.current || !currentTrack) return;
@@ -340,5 +388,6 @@ export const useAudioPlayer = () => {
     clearQueue,
     playTrackFromQueue,
     formatTime,
+    isOnline,
   };
 };

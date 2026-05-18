@@ -49,13 +49,15 @@ export const FavoritesProvider = ({ children }) => {
         const newIds = new Set(favoriteIds);
         newIds.add(trackId);
         setFavoriteIds(newIds);
+        // Refresh full list to get the new track object
+        await loadFavorites();
       }
       return !wasFavorite;
     } catch (err) {
       console.error('Error toggling favorite:', err);
       throw err;
     }
-  }, [favoriteIds]);
+  }, [favoriteIds, loadFavorites]);
 
   const isFavorite = useCallback((trackId) => {
     return favoriteIds.has(trackId);
