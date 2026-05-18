@@ -1560,48 +1560,47 @@ const ResonanceApp = () => {
   );
 
   const BottomPlayerBar = () => (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/15 glass-surface-dark p-4 shadow-2xl shadow-black/40">
-      <div className="mx-auto flex max-w-6xl items-center gap-4">
-        <div className="flex items-center gap-3 min-w-0">
+    <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-40 border-t border-white/15 glass-surface-dark p-3 md:p-4 shadow-2xl shadow-black/40">
+      <div className="mx-auto flex max-w-7xl items-center gap-4">
+        <div className="flex items-center gap-3 min-w-0 flex-1 md:flex-initial">
           <button
             onClick={() => setIsFullPlayer(true)}
-            className="h-16 w-16 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-lg shadow-white/10 hover:ring-white/40 transition"
+            className="h-12 w-12 md:h-16 md:w-16 rounded-xl md:rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-lg shadow-white/10 hover:ring-white/40 transition shrink-0"
           >
             <img src={currentTrack.artwork_url} alt={currentTrack.title} className="h-full w-full object-cover" />
           </button>
           <div className="min-w-0">
-            <p className="text-sm text-slate-400">Now playing</p>
-            <h3 className="text-base font-semibold text-white truncate">{currentTrack.title}</h3>
-            <p className="text-xs text-slate-500 truncate">{currentTrack.artist}</p>
+            <h3 className="text-sm md:text-base font-semibold text-white truncate">{currentTrack.title}</h3>
+            <p className="text-[10px] md:text-xs text-slate-500 truncate">{currentTrack.artist}</p>
           </div>
         </div>
 
-        <div className="flex-1">
-          <div className="flex items-center justify-center gap-3 mb-3">
+        <div className="hidden md:flex flex-1 flex-col items-center max-w-2xl">
+          <div className="flex items-center justify-center gap-4 mb-2">
             <button
               onClick={() => setShuffle(!shuffle)}
-              className={`rounded-full p-3 glass-button-dark ${shuffle ? 'bg-emerald-500/30 text-emerald-300' : ''}`}
+              className={`rounded-full p-2 transition-colors ${shuffle ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}
             >
               <Shuffle size={16} />
             </button>
-            <button onClick={playPrevious} className="rounded-full glass-button-dark p-3">
-              <SkipBack size={16} />
+            <button onClick={playPrevious} className="text-slate-200 hover:text-white transition-colors">
+              <SkipBack size={18} />
             </button>
-            <button onClick={togglePlayPause} className="rounded-full bg-gradient-to-r from-white to-slate-100 p-3 text-slate-950 shadow-lg shadow-white/20">
-              {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+            <button onClick={togglePlayPause} className="h-10 w-10 flex items-center justify-center rounded-full bg-white text-slate-950 hover:scale-105 transition active:scale-95 shadow-lg">
+              {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </button>
-            <button onClick={playNext} className="rounded-full glass-button-dark p-3">
-              <SkipForward size={16} />
+            <button onClick={playNext} className="text-slate-200 hover:text-white transition-colors">
+              <SkipForward size={18} />
             </button>
             <button
               onClick={toggleRepeat}
-              className={`rounded-full p-3 glass-button-dark ${repeat !== 'none' ? 'bg-emerald-500/30 text-emerald-300' : ''}`}
+              className={`rounded-full p-2 transition-colors ${repeat !== 'none' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}
             >
               <Repeat size={16} />
             </button>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500">{formatTime(currentTime)}</span>
+          <div className="flex items-center gap-3 w-full">
+            <span className="text-[10px] tabular-nums text-slate-500 w-10 text-right">{formatTime(currentTime)}</span>
             <Slider
               value={[duration > 0 ? (currentTime / duration) * 100 : 0]}
               onValueChange={(value) => seek((value[0] / 100) * duration)}
@@ -1609,19 +1608,29 @@ const ResonanceApp = () => {
               step={0.1}
               className="flex-1"
             />
-            <span className="text-xs text-slate-500">{formatTime(duration)}</span>
+            <span className="text-[10px] tabular-nums text-slate-500 w-10">{formatTime(duration)}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Volume2 size={18} className="text-slate-400" />
-          <Slider
-            value={[volume]}
-            onValueChange={(value) => setVolume(value[0])}
-            max={100}
-            step={1}
-            className="w-32"
-          />
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="md:hidden flex items-center gap-1">
+            <button onClick={togglePlayPause} className="h-10 w-10 flex items-center justify-center rounded-full text-white">
+              {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+            </button>
+            <button onClick={playNext} className="h-10 w-10 flex items-center justify-center rounded-full text-white">
+              <SkipForward size={22} />
+            </button>
+          </div>
+          <div className="hidden lg:flex items-center gap-3">
+            <Volume2 size={18} className="text-slate-400" />
+            <Slider
+              value={[volume]}
+              onValueChange={(value) => setVolume(value[0])}
+              max={100}
+              step={1}
+              className="w-24 xl:w-32"
+            />
+          </div>
         </div>
       </div>
     </div>
