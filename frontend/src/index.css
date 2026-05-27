@@ -1,224 +1,438 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════
+   MIDNIGHT SAMURAI — Design System
+   Palette extracted from: Samurai on white horse + silver
+   muscle car on night highway
+   ═══════════════════════════════════════════════════════
+   void      #030306   — pure night sky black
+   surface-1 #0C0D11   — deepest surface layer
+   surface-2 #13141A   — card surface
+   surface-3 #1C1D26   — elevated surface
+   chrome    #C8C8CC   — silver horse / car body
+   chrome-hi #EBEBED   — brightest chrome (text)
+   amber     #C49A28   — samurai armor warm gold
+   ember     #CC2020   — brake light red
+   void-mid  #888890   — muted chrome (secondary text)
+   ══════════════════════════════════════════════════════ */
+
+:root {
+  --void: #030306;
+  --surface-1: #0C0D11;
+  --surface-2: #13141A;
+  --surface-3: #1C1D26;
+  --chrome: #C8C8CC;
+  --chrome-hi: #EBEBED;
+  --chrome-dim: #888890;
+  --chrome-faint: rgba(200, 200, 204, 0.06);
+  --chrome-border: rgba(200, 200, 204, 0.1);
+  --chrome-border-bright: rgba(200, 200, 204, 0.2);
+  --amber: #C49A28;
+  --amber-glow: rgba(196, 154, 40, 0.25);
+  --amber-dim: #8B6B1A;
+  --ember: #CC2020;
+  --ember-glow: rgba(204, 32, 32, 0.3);
+  --ember-dim: #881616;
+
+  --background: 240 11% 3%;
+  --foreground: 240 5% 93%;
+  --card: 240 11% 7%;
+  --card-foreground: 240 5% 93%;
+  --popover: 240 11% 7%;
+  --popover-foreground: 240 5% 93%;
+  --primary: 240 5% 93%;
+  --primary-foreground: 240 11% 7%;
+  --secondary: 240 8% 11%;
+  --secondary-foreground: 240 5% 93%;
+  --muted: 240 8% 14%;
+  --muted-foreground: 240 4% 55%;
+  --accent: 42 66% 46%;
+  --accent-foreground: 240 5% 93%;
+  --destructive: 0 70% 45%;
+  --destructive-foreground: 240 5% 93%;
+  --border: 240 10% 16%;
+  --input: 240 8% 11%;
+  --ring: 240 5% 60%;
+  --chart-1: 42 66% 46%;
+  --chart-2: 0 70% 45%;
+  --chart-3: 200 40% 50%;
+  --chart-4: 280 45% 55%;
+  --chart-5: 160 45% 45%;
+  --radius: 0.75rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-        "Helvetica Neue", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color: var(--foreground);
-    background-color: #020617;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--void);
+  color: var(--chrome-hi);
+  letter-spacing: -0.01em;
 }
 
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-        monospace;
-}
-
-
+/* Scrollbar — chrome on black */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface-1); }
+::-webkit-scrollbar-thumb { background: rgba(200, 200, 204, 0.15); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(200, 200, 204, 0.3); }
 
 @layer base {
   :root {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 8%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 8%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 220 15% 12%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 220 15% 18%;
-        --muted-foreground: 0 0% 70%;
-        --accent: 220 20% 14%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 200 20% 20%;
-        --input: 220 15% 12%;
-        --ring: 220 10% 75%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-        --radius: 0.5rem;
-    }
-  .light {
-        --background: 0 0% 98%;
-        --foreground: 220 20% 12%;
-        --card: 210 20% 96%;
-        --card-foreground: 220 15% 12%;
-        --popover: 210 20% 98%;
-        --popover-foreground: 220 20% 12%;
-        --primary: 220 15% 12%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 220 15% 90%;
-        --secondary-foreground: 220 20% 12%;
-        --muted: 220 10% 92%;
-        --muted-foreground: 220 15% 40%;
-        --accent: 230 90% 65%;
-        --accent-foreground: 0 0% 10%;
-        --destructive: 0 80% 70%;
-        --destructive-foreground: 0 0% 10%;
-        --border: 220 10% 85%;
-        --input: 220 15% 96%;
-        --ring: 220 10% 60%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-    }
+    --background: 240 11% 3%;
+    --foreground: 240 5% 93%;
+    --card: 240 11% 7%;
+    --card-foreground: 240 5% 93%;
+    --popover: 240 11% 7%;
+    --popover-foreground: 240 5% 93%;
+    --primary: 240 5% 93%;
+    --primary-foreground: 240 11% 7%;
+    --secondary: 240 8% 11%;
+    --secondary-foreground: 240 5% 93%;
+    --muted: 240 8% 14%;
+    --muted-foreground: 240 4% 55%;
+    --accent: 42 66% 46%;
+    --accent-foreground: 240 5% 93%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 240 5% 93%;
+    --border: 240 10% 16%;
+    --input: 240 8% 11%;
+    --ring: 240 5% 60%;
+    --radius: 0.75rem;
+  }
+
   .dark {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 8%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 8%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 220 15% 12%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 220 15% 18%;
-        --muted-foreground: 0 0% 70%;
-        --accent: 220 20% 14%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 200 20% 20%;
-        --input: 220 15% 12%;
-        --ring: 220 10% 75%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-    }
+    --background: 240 11% 3%;
+    --foreground: 240 5% 93%;
+    --card: 240 11% 7%;
+    --card-foreground: 240 5% 93%;
+    --popover: 240 11% 7%;
+    --popover-foreground: 240 5% 93%;
+    --primary: 240 5% 93%;
+    --primary-foreground: 240 11% 7%;
+    --secondary: 240 8% 11%;
+    --secondary-foreground: 240 5% 93%;
+    --muted: 240 8% 14%;
+    --muted-foreground: 240 4% 55%;
+    --accent: 42 66% 46%;
+    --accent-foreground: 240 5% 93%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 240 5% 93%;
+    --border: 240 10% 16%;
+    --input: 240 8% 11%;
+    --ring: 240 5% 60%;
+  }
+
+  .light {
+    --background: 240 5% 96%;
+    --foreground: 240 11% 8%;
+    --card: 240 8% 92%;
+    --card-foreground: 240 11% 8%;
+    --popover: 240 8% 94%;
+    --popover-foreground: 240 11% 8%;
+    --primary: 240 11% 8%;
+    --primary-foreground: 240 5% 96%;
+    --secondary: 240 5% 86%;
+    --secondary-foreground: 240 11% 8%;
+    --muted: 240 5% 88%;
+    --muted-foreground: 240 8% 40%;
+    --accent: 42 66% 40%;
+    --accent-foreground: 240 5% 96%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 240 5% 96%;
+    --border: 240 5% 82%;
+    --input: 240 5% 90%;
+    --ring: 240 8% 50%;
+  }
 }
-
-
 
 @layer base {
-  * {
-    @apply border-border;
-    }
-  body {
-    @apply bg-background text-foreground;
-    }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
 }
 
-/* Glass Morphism Utilities */
+/* ═══════════════════════════════════════════════
+   MIDNIGHT SAMURAI — Glass / Surface Utilities
+   ═══════════════════════════════════════════════ */
 @layer components {
+
+  /* --- Core glass surfaces --- */
   .glass {
-    @apply bg-black/25 backdrop-blur-md border border-white/15 rounded-2xl;
+    background: rgba(19, 20, 26, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--chrome-border);
+    border-radius: 1.25rem;
   }
 
   .glass-sm {
-    @apply bg-black/20 backdrop-blur-sm border border-white/10;
+    background: rgba(12, 13, 17, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--chrome-border);
   }
 
   .glass-md {
-    @apply bg-black/25 backdrop-blur-lg border border-white/15;
+    background: rgba(19, 20, 26, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--chrome-border);
   }
 
   .glass-lg {
-    @apply bg-black/30 backdrop-blur-xl border border-white/20;
+    background: rgba(28, 29, 38, 0.85);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--chrome-border-bright);
   }
 
   .glass-xl {
-    @apply bg-black/35 backdrop-blur-2xl border border-white/25;
+    background: rgba(28, 29, 38, 0.9);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid var(--chrome-border-bright);
   }
 
   .glass-dark {
-    @apply bg-black/40 backdrop-blur-md border border-white/10;
+    background: rgba(3, 3, 6, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--chrome-border);
   }
 
   .glass-dark-sm {
-    @apply bg-black/30 backdrop-blur-sm border border-white/10;
+    background: rgba(3, 3, 6, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--chrome-border);
   }
 
   .glass-dark-lg {
-    @apply bg-black/50 backdrop-blur-xl border border-white/15;
+    background: rgba(3, 3, 6, 0.75);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--chrome-border);
   }
 
+  /* --- Interactive glass --- */
   .glass-button {
-    @apply bg-black/35 hover:bg-black/45 border border-white/15 text-white backdrop-blur-md transition-all duration-200 ease-out;
+    background: rgba(200, 200, 204, 0.08);
+    border: 1px solid var(--chrome-border-bright);
+    color: var(--chrome-hi);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  .glass-button:hover {
+    background: rgba(200, 200, 204, 0.14);
+    border-color: rgba(200, 200, 204, 0.3);
   }
 
   .glass-button-dark {
-    @apply bg-black/45 hover:bg-black/55 border border-white/15 text-white backdrop-blur-md transition-all duration-200 ease-out;
+    background: rgba(3, 3, 6, 0.55);
+    border: 1px solid var(--chrome-border);
+    color: var(--chrome-hi);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
   }
-
-  .glass-input {
-    @apply bg-black/30 backdrop-blur-sm border border-white/15 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200;
-  }
-
-  .glass-card {
-    @apply rounded-3xl border border-white/15 bg-black/25 backdrop-blur-xl shadow-xl shadow-black/30 transition-all duration-300;
-  }
-
-  .glass-card-dark {
-    @apply rounded-3xl border border-white/15 bg-black/45 backdrop-blur-xl shadow-xl shadow-black/50 transition-all duration-300;
-  }
-
-  .glass-blur-heavy {
-    @apply backdrop-blur-2xl;
-  }
-
-  .glass-blur-medium {
-    @apply backdrop-blur-xl;
-  }
-
-  .glass-blur-light {
-    @apply backdrop-blur-lg;
-  }
-
-  .glass-glow {
-    @apply shadow-xl shadow-white/10;
-  }
-
-  .glass-glow-lg {
-    @apply shadow-2xl shadow-white/20;
-  }
-
-  .glass-surface {
-    @apply bg-gradient-to-br from-black/30 to-black/15 backdrop-blur-xl border border-white/15;
-  }
-
-  .glass-surface-dark {
-    @apply bg-gradient-to-br from-black/50 to-black/25 backdrop-blur-xl border border-white/15;
+  .glass-button-dark:hover {
+    background: rgba(200, 200, 204, 0.1);
+    border-color: var(--chrome-border-bright);
   }
 
   .glass-hover {
-    @apply hover:bg-white/20 hover:border-white/30 transition-all duration-300 ease-out;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-hover:hover {
+    background: rgba(200, 200, 204, 0.1);
+    border-color: rgba(200, 200, 204, 0.25);
   }
 
   .glass-hover-dark {
-    @apply hover:bg-black/40 hover:border-white/20 transition-all duration-300 ease-out;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-hover-dark:hover {
+    background: rgba(200, 200, 204, 0.08);
+    border-color: rgba(200, 200, 204, 0.18);
   }
 
+  /* --- Input --- */
+  .glass-input {
+    background: rgba(12, 13, 17, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--chrome-border-bright);
+    border-radius: 0.875rem;
+    color: var(--chrome-hi);
+    transition: all 200ms;
+  }
+  .glass-input::placeholder { color: rgba(136, 136, 144, 0.6); }
+  .glass-input:focus {
+    outline: none;
+    border-color: rgba(196, 154, 40, 0.5);
+    box-shadow: 0 0 0 2px rgba(196, 154, 40, 0.15);
+  }
+
+  /* --- Cards --- */
+  .glass-card {
+    background: rgba(19, 20, 26, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--chrome-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card:hover {
+    border-color: var(--chrome-border-bright);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  }
+
+  .glass-card-dark {
+    background: rgba(3, 3, 6, 0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--chrome-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card-dark:hover {
+    border-color: var(--chrome-border-bright);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(200, 200, 204, 0.08);
+  }
+
+  /* --- Surfaces (nav / header / sidebar) --- */
+  .glass-surface {
+    background: rgba(28, 29, 38, 0.8);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--chrome-border);
+  }
+
+  .glass-surface-dark {
+    background: rgba(3, 3, 6, 0.85);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--chrome-border);
+  }
+
+  /* --- Glow effects --- */
+  .glass-glow { box-shadow: 0 0 24px rgba(200, 200, 204, 0.06); }
+  .glass-glow-lg { box-shadow: 0 0 48px rgba(200, 200, 204, 0.1); }
+  .amber-glow { box-shadow: 0 0 32px var(--amber-glow); }
+  .ember-glow { box-shadow: 0 0 32px var(--ember-glow); }
+
+  /* --- Blur helpers --- */
+  .glass-blur-heavy  { backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); }
+  .glass-blur-medium { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+  .glass-blur-light  { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+  /* --- Misc link --- */
   .glass-link {
-    @apply text-white/80 hover:text-white transition-colors duration-200;
+    color: var(--chrome-dim);
+    transition: color 200ms;
   }
+  .glass-link:hover { color: var(--chrome-hi); }
 
-  .view-transition-left {
-    @apply transition-transform duration-300 ease-out;
-    transform: translateX(0);
-  }
-
-  .view-transition-right {
-    @apply transition-transform duration-300 ease-out;
-    transform: translateX(0);
-  }
-
+  /* --- View transitions --- */
+  .view-transition-left,
+  .view-transition-right,
   .view-transition-fade {
-    @apply transition-opacity duration-300 ease-out;
-    opacity: 1;
+    animation: ms-fadein 250ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
+
+  /* --- Amber accent button (CTA) --- */
+  .btn-amber {
+    background: linear-gradient(135deg, #C49A28 0%, #8B6B1A 100%);
+    color: #EBEBED;
+    border: none;
+    transition: all 200ms;
+  }
+  .btn-amber:hover {
+    background: linear-gradient(135deg, #D4AA38 0%, #A07820 100%);
+    box-shadow: 0 4px 20px rgba(196, 154, 40, 0.35);
+  }
+
+  /* --- Ember red accent --- */
+  .btn-ember {
+    background: linear-gradient(135deg, #CC2020 0%, #881616 100%);
+    color: #EBEBED;
+    border: none;
+  }
+
+  /* --- Play button (chrome) --- */
+  .btn-play {
+    background: linear-gradient(135deg, #E8E8EC 0%, #C0C0C4 100%);
+    color: #030306;
+    border: none;
+    box-shadow: 0 4px 24px rgba(200, 200, 204, 0.2);
+    transition: all 200ms;
+  }
+  .btn-play:hover {
+    box-shadow: 0 6px 32px rgba(200, 200, 204, 0.35);
+    transform: scale(1.04);
+  }
+  .btn-play:active { transform: scale(0.97); }
+
+  /* --- Skeleton loading --- */
+  .skeleton {
+    background: linear-gradient(90deg,
+      rgba(200, 200, 204, 0.04) 0%,
+      rgba(200, 200, 204, 0.1) 50%,
+      rgba(200, 200, 204, 0.04) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* --- Scrollable area with chrome scrollbar --- */
+  .scroll-chrome {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 200, 204, 0.15) transparent;
+  }
+}
+
+/* ═══════════════ Keyframes ═══════════════ */
+@keyframes ms-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes pulse-amber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 154, 40, 0.0); }
+  50%       { box-shadow: 0 0 16px 4px rgba(196, 154, 40, 0.25); }
+}
+
+/* ═══════════════ Typography ═══════════════ */
+.font-display {
+  font-family: 'Bebas Neue', 'Inter', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════ App Shell ═══════════════ */
+#root {
+  height: 100vh;
+  overflow: hidden;
+  background: var(--void);
 }
