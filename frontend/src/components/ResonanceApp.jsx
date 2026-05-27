@@ -79,13 +79,13 @@ class AppErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-6">
+        <div className="min-h-screen flex items-center justify-center bg-[#030306] text-white p-6">
           <div className="max-w-md text-center glass-card-dark p-8">
             <h1 className="text-3xl font-semibold mb-4">Something went wrong</h1>
-            <p className="text-slate-400 mb-6">The app encountered an issue, but you can reload to continue.</p>
+            <p className="text-[#888890] mb-6">The app encountered an issue, but you can reload to continue.</p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-white text-slate-950 rounded-full px-6 py-3 font-semibold"
+              className="btn-play text-[#030306] rounded-full px-6 py-3 font-semibold"
             >
               Reload app
             </button>
@@ -413,7 +413,7 @@ const ResonanceApp = () => {
       <div className="aspect-square overflow-hidden relative">
         <img src={track.artwork_url} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-          <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-100 rounded-full p-2" onClick={(e) => { e.stopPropagation(); onPlay(track); }}>
+          <Button size="sm" className="btn-play text-[#030306] hover:bg-slate-100 rounded-full p-2" onClick={(e) => { e.stopPropagation(); onPlay(track); }}>
             <Play size={16} />
           </Button>
           <Button
@@ -443,10 +443,10 @@ const ResonanceApp = () => {
         </div>
       </div>
       <div className="p-4 space-y-1 backdrop-blur-xl">
-        <p className="text-xs text-slate-400">{index || ''}</p>
-        <h3 className="text-white font-semibold truncate">{track.title}</h3>
-        {showArtist && <p className="text-slate-400 text-sm truncate">{track.artist}</p>}
-        <p className="text-slate-500 text-xs">{formatTime(track.duration || 0)}</p>
+        <p className="text-xs text-[#888890]">{index || ''}</p>
+        <h3 className="text-[#EBEBED] font-semibold truncate">{track.title}</h3>
+        {showArtist && <p className="text-[#888890] text-sm truncate">{track.artist}</p>}
+        <p className="text-[#55555E] text-xs">{formatTime(track.duration || 0)}</p>
       </div>
     </div>
   );
@@ -562,7 +562,7 @@ const ResonanceApp = () => {
     return (
       <div
         ref={listRef}
-        className="relative overflow-y-auto h-[64vh] rounded-3xl border border-white/10 bg-black/30 backdrop-blur-xl"
+        className="relative overflow-y-auto h-[64vh] rounded-3xl border border-[rgba(200,200,204,0.08)] bg-black/30 backdrop-blur-xl"
         style={{ scrollBehavior: 'smooth' }}
       >
         <div style={{ height: totalHeight }} />
@@ -574,7 +574,7 @@ const ResonanceApp = () => {
               className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
             >
               <div className="flex items-center gap-4">
-                <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-[rgba(200,200,204,0.15)] flex-shrink-0">
                   <img
                     src={track.artwork_url}
                     alt={track.title}
@@ -590,11 +590,11 @@ const ResonanceApp = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-white text-lg font-semibold truncate">{track.title}</h3>
-                  <p className="text-slate-400 truncate">{track.artist}</p>
-                  <p className="text-slate-500 text-sm mt-1">{track.album || 'Single'}</p>
+                  <p className="text-[#888890] truncate">{track.artist}</p>
+                  <p className="text-[#55555E] text-sm mt-1">{track.album || 'Single'}</p>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className="text-slate-400 text-sm">{formatTime(track.duration || 0)}</span>
+                  <span className="text-[#888890] text-sm">{formatTime(track.duration || 0)}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -607,7 +607,7 @@ const ResonanceApp = () => {
                     <Heart
                       size={18}
                       fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'}
-                      className={isFavorite(track._id || track.id) ? 'text-red-500' : ''}
+                      className={isFavorite(track._id || track.id) ? 'text-[#CC2020]' : ''}
                     />
                   </Button>
                 </div>
@@ -761,18 +761,18 @@ const ResonanceApp = () => {
   ];
 
   const Sidebar = () => (
-    <div className={`${sidebarCollapsed ? 'w-20' : 'w-72'} h-full glass-surface-dark border-r border-white/15 text-slate-100 flex flex-col transition-all duration-300`}> 
-      <div className="p-4 md:p-6 border-b border-white/10 glass-surface-dark">
+    <div className={`${sidebarCollapsed ? 'w-20' : 'w-72'} h-full glass-surface-dark border-r border-[rgba(200,200,204,0.1)] text-[#EBEBED] flex flex-col transition-all duration-300`}> 
+      <div className="p-4 md:p-6 border-b border-[rgba(200,200,204,0.08)] glass-surface-dark">
         <div className="flex items-center gap-3">
           {githubAvatar && (
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-lg shadow-white/10">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl overflow-hidden ring-1 ring-[rgba(200,200,204,0.15)] shadow-lg shadow-white/10">
               <img src={githubAvatar} alt="Resonance" className="w-full h-full object-cover" />
             </div>
           )}
           {!sidebarCollapsed && (
             <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-              <h1 className="text-lg md:text-xl font-semibold tracking-wide text-white">Resonance</h1>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400 mt-0.5 md:mt-1">Music player</p>
+              <h1 className="font-display text-xl md:text-2xl tracking-[0.08em] text-[#EBEBED]">RESONANCE</h1>
+              <p className="text-[9px] uppercase tracking-[0.5em] text-[#55555E] mt-0.5">PLAYER</p>
             </div>
           )}
         </div>
@@ -793,8 +793,8 @@ const ResonanceApp = () => {
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${
                   currentView === item.id
-                    ? 'glass-surface text-white shadow-lg shadow-white/10'
-                    : 'text-slate-400 hover:text-white hover:glass-surface-dark'
+                    ? 'glass-surface text-[#EBEBED] shadow-lg'
+                    : 'text-[#888890] hover:text-white hover:glass-surface-dark'
                 }`}
               >
                 <Icon size={22} />
@@ -805,18 +805,18 @@ const ResonanceApp = () => {
 
           <div className="mt-8 space-y-2">
             <div className="px-4 pb-2">
-              {!sidebarCollapsed && <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400">Library</h3>}
+              {!sidebarCollapsed && <h3 className="text-[9px] uppercase tracking-[0.5em] text-[#3D3D45]">Library</h3>}
             </div>
             <button
               onClick={() => setShowUploadDialog(true)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-200 hover:text-white glass-button-dark"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[#C8C8CC] hover:text-white glass-button-dark"
             >
               <Plus size={22} />
               {!sidebarCollapsed && <span className="text-sm font-medium">Add Music</span>}
             </button>
             <button
               onClick={() => setShowYouTubeSearch(true)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-200 hover:text-white glass-button-dark"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[#C8C8CC] hover:text-white glass-button-dark"
             >
               <Youtube size={22} />
               {!sidebarCollapsed && <span className="text-sm font-medium">YouTube</span>}
@@ -825,19 +825,19 @@ const ResonanceApp = () => {
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t border-white/10 glass-surface-dark">
+      <div className="p-4 border-t border-[rgba(200,200,204,0.08)] glass-surface-dark">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-white/20 to-white/10 rounded-2xl flex items-center justify-center ring-1 ring-white/20 backdrop-blur-md">
-            <User size={16} className="text-slate-300" />
+          <div className="w-10 h-10 bg-[rgba(200,200,204,0.08)] rounded-2xl flex items-center justify-center ring-1 ring-[rgba(200,200,204,0.15)] backdrop-blur-md">
+            <User size={16} className="text-[#AAAAAE]" />
           </div>
           {!sidebarCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-medium truncate">Guest User</p>
-              <p className="text-slate-500 text-xs truncate">Free account</p>
+              <p className="text-[#55555E] text-xs truncate">Free account</p>
             </div>
           )}
           {!sidebarCollapsed && (
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+            <Button variant="ghost" size="sm" className="text-[#AAAAAE] hover:text-white">
               <Settings size={16} />
             </Button>
           )}
@@ -846,7 +846,7 @@ const ResonanceApp = () => {
 
       <button
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="absolute top-1/2 -right-4 z-10 w-9 h-9 glass-button-dark hover:glass-hover-dark rounded-full flex items-center justify-center text-slate-300 hover:text-white"
+        className="absolute top-1/2 -right-4 z-10 w-9 h-9 glass-button-dark hover:glass-hover-dark rounded-full flex items-center justify-center text-[#AAAAAE] hover:text-white"
       >
         {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
@@ -858,11 +858,11 @@ const ResonanceApp = () => {
       <div className="p-6 md:p-8 space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-[0.4em] text-slate-400">Good evening</p>
-            <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Your music, your mood.</h1>
-            <p className="max-w-2xl text-slate-400">Stream your library, continue listening, and manage playlists with a premium player feel across every view.</p>
+            <p className="text-xs uppercase tracking-[0.5em] text-[#55555E]">Good evening</p>
+            <h1 className="text-4xl md:text-5xl font-semibold text-[#EBEBED] tracking-tight">Your music, your mood.</h1>
+            <p className="max-w-2xl text-[#55555E]">Stream your library, continue listening, and manage playlists with a premium player feel across every view.</p>
           </div>
-          <Button variant="outline" onClick={openHomeSettings} className="text-slate-300 hover:text-white rounded-full px-5 py-3">
+          <Button variant="outline" onClick={openHomeSettings} className="glass-button rounded-full px-5 py-3 text-[#AAAAAE] hover:text-[#EBEBED] cursor-pointer">
             Customize home
           </Button>
         </div>
@@ -870,25 +870,25 @@ const ResonanceApp = () => {
         {homeModules.find((module) => module.id === 'nowPlaying')?.enabled && currentTrack && (
           <div className="glass-card-dark overflow-hidden shadow-2xl">
             <div className="grid gap-6 md:grid-cols-[280px_1fr] items-center p-6">
-              <div className="rounded-[2rem] overflow-hidden shadow-xl shadow-white/10 ring-1 ring-white/20">
+              <div className="rounded-[2rem] overflow-hidden shadow-xl shadow-white/10 ring-1 ring-[rgba(200,200,204,0.15)]">
                 <img src={currentTrack.artwork_url} alt={currentTrack.title} className="w-full h-full object-cover" />
               </div>
 
               <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg uppercase tracking-[0.3em] text-slate-400">Now Playing</h2>
+                  <h2 className="text-xs uppercase tracking-[0.5em] text-[#55555E]">Now Playing</h2>
                   <h3 className="text-3xl font-semibold text-white mt-3">{currentTrack.title}</h3>
-                  <p className="text-slate-400 mt-2">{currentTrack.artist}</p>
+                  <p className="text-[#888890] mt-2">{currentTrack.artist}</p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="secondary" className="rounded-full px-5 py-3 glass-button">Play</Button>
+                  <Button variant="secondary" className="btn-play rounded-full px-5 py-3">Play</Button>
                   <Button variant="outline" className="rounded-full px-5 py-3 glass-button-dark">Queue</Button>
                   <Button variant="ghost" className="rounded-full px-5 py-3 text-white/80">Share</Button>
                 </div>
 
                 <div className="glass-dark rounded-2xl p-4">
-                  <div className="flex items-center justify-between text-slate-400 text-sm mb-3">
+                  <div className="flex items-center justify-between text-[#888890] text-sm mb-3">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
                   </div>
@@ -910,9 +910,9 @@ const ResonanceApp = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-white">Recently Played</h2>
-                <p className="text-slate-500">Tap to continue listening to your latest tracks.</p>
+                <p className="text-[#55555E]">Tap to continue listening to your latest tracks.</p>
               </div>
-              <Button variant="ghost" className="text-slate-300 hover:text-white">Show all</Button>
+              <Button variant="ghost" className="text-[#AAAAAE] hover:text-white">Show all</Button>
             </div>
 
             {isLoading ? (
@@ -936,11 +936,11 @@ const ResonanceApp = () => {
               </div>
             ) : (
               <div className="glass-card-dark p-12 text-center border-dashed border-2">
-                <Music size={48} className="mx-auto mb-4 text-slate-500" />
+                <Music size={48} className="mx-auto mb-4 text-[#55555E]" />
                 <h3 className="text-white text-xl font-semibold mb-2">No music yet</h3>
-                <p className="text-slate-400 mb-6">Upload a track or search YouTube to start streaming.</p>
+                <p className="text-[#888890] mb-6">Upload a track or search YouTube to start streaming.</p>
                 <div className="flex flex-wrap justify-center gap-3">
-                  <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Upload Music</Button>
+                  <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-[#C49A28] to-[#8B6B1A] text-white hover:from-[#D4AA38] hover:to-[#9A7820] rounded-full px-5 py-3">Upload Music</Button>
                   <Button onClick={() => setShowYouTubeSearch(true)} className="glass-button-dark rounded-full px-5 py-3 text-white">YouTube Search</Button>
                 </div>
               </div>
@@ -949,13 +949,13 @@ const ResonanceApp = () => {
               <div className="glass-card-dark p-6 mt-8">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <div className="flex items-center gap-2 text-slate-400 text-sm uppercase tracking-[0.3em]">
+                    <div className="flex items-center gap-2 text-[#888890] text-sm uppercase tracking-[0.3em]">
                       <ListMusic size={16} />
                       <span>Play Queue</span>
                     </div>
                     <h3 className="text-xl font-semibold text-white">Up next</h3>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={clearQueue} className="text-slate-300 hover:text-white">
+                  <Button variant="ghost" size="sm" onClick={clearQueue} className="text-[#AAAAAE] hover:text-white">
                     Clear queue
                   </Button>
                 </div>
@@ -963,7 +963,7 @@ const ResonanceApp = () => {
                   {queue.map((track, idx) => (
                     <div key={track.id || idx} className="flex items-center justify-between gap-4 glass-dark rounded-2xl p-4">
                       <div>
-                        <p className="text-sm text-slate-400">{idx + 1}. {track.title}</p>
+                        <p className="text-sm text-[#888890]">{idx + 1}. {track.title}</p>
                         <p className="text-sm text-white truncate">{track.artist}</p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -987,19 +987,19 @@ const ResonanceApp = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-white">Browse Genres</h2>
-                <p className="text-slate-400">Find playlists, moods, and trends curated for you.</p>
+                <p className="text-[#888890]">Find playlists, moods, and trends curated for you.</p>
               </div>
-              <Button variant="ghost" className="text-slate-300 hover:text-white">More</Button>
+              <Button variant="ghost" className="text-[#AAAAAE] hover:text-white">More</Button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {[
-                { title: "Pop", color: "from-pink-500 to-rose-500" },
-                { title: "Hip-Hop", color: "from-orange-500 to-red-500" },
-                { title: "Rock", color: "from-purple-500 to-indigo-500" },
-                { title: "Jazz", color: "from-blue-500 to-cyan-500" },
-                { title: "Classical", color: "from-green-500 to-emerald-500" },
-                { title: "Electronic", color: "from-yellow-500 to-orange-500" }
+                { title: "Pop", color: "from-[#CC2020] to-[#881616]" },
+                { title: "Hip-Hop", color: "from-[#C49A28] to-[#CC2020]" },
+                { title: "Rock", color: "from-[#888890] to-[#55555E]" },
+                { title: "Jazz", color: "from-[#3A3A44] to-[#888890]" },
+                { title: "Classical", color: "from-[#8B6B1A] to-[#C49A28]" },
+                { title: "Electronic", color: "from-[#C49A28] to-[#8B6B1A]" }
               ].map((genre, idx) => (
                 <div key={idx} className={`overflow-hidden rounded-3xl bg-gradient-to-br ${genre.color} shadow-xl shadow-black/30 transition hover:shadow-2xl hover:-translate-y-1 p-5 h-28 flex items-end cursor-pointer group glass-card`}> 
                   <h3 className="text-white font-semibold text-lg group-hover:scale-105 transition-transform">{genre.title}</h3>
@@ -1013,13 +1013,13 @@ const ResonanceApp = () => {
           <div className="glass-card-dark p-6 mt-8">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <div className="flex items-center gap-2 text-slate-400 text-sm uppercase tracking-[0.3em]">
+                <div className="flex items-center gap-2 text-[#888890] text-sm uppercase tracking-[0.3em]">
                   <ListMusic size={16} />
                   <span>Play Queue</span>
                 </div>
                 <h3 className="text-xl font-semibold text-white">Up next</h3>
               </div>
-              <Button variant="ghost" size="sm" onClick={clearQueue} className="text-slate-300 hover:text-white">
+              <Button variant="ghost" size="sm" onClick={clearQueue} className="text-[#AAAAAE] hover:text-white">
                 Clear queue
               </Button>
             </div>
@@ -1027,7 +1027,7 @@ const ResonanceApp = () => {
               {queue.map((track, idx) => (
                 <div key={track.id || idx} className="flex items-center justify-between gap-4 glass-dark rounded-2xl p-4">
                   <div>
-                    <p className="text-sm text-slate-400">{idx + 1}. {track.title}</p>
+                    <p className="text-sm text-[#888890]">{idx + 1}. {track.title}</p>
                     <p className="text-sm text-white truncate">{track.artist}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1064,10 +1064,10 @@ const ResonanceApp = () => {
       <ScrollArea className="flex-1">
         <div className="p-6 md:p-8 space-y-8">
           <div className="space-y-4">
-            <h1 className="text-4xl font-semibold text-white">Search your library</h1>
+            <h1 className="text-4xl font-semibold text-[#EBEBED]">Search your library</h1>
             <div className="max-w-2xl">
               <div className="relative">
-                <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-[#888890]" />
                 <input
                   type="text"
                   placeholder="Search by title, artist, or album..."
@@ -1088,7 +1088,7 @@ const ResonanceApp = () => {
                   variant="ghost"
                   size="sm"
                   onClick={clearSearchHistory}
-                  className="text-slate-400 hover:text-white"
+                  className="text-[#888890] hover:text-white"
                 >
                   Clear all
                 </Button>
@@ -1098,7 +1098,7 @@ const ResonanceApp = () => {
                   <Button
                     key={idx}
                     variant="outline"
-                    className="border-white/20 text-slate-300 hover:text-white rounded-full"
+                    className="border-[rgba(200,200,204,0.15)] text-[#AAAAAE] hover:text-white rounded-full"
                     onClick={() => handleSearch(item.query)}
                   >
                     {item.query}
@@ -1158,16 +1158,16 @@ const ResonanceApp = () => {
                               <img src={artist.sample_artwork || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop'} alt={artist.artist} className="h-full w-full object-cover" />
                             </div>
                             <h3 className="text-white text-lg font-semibold truncate">{artist.artist}</h3>
-                            <p className="text-slate-400 text-sm mt-1">{artist.track_count} tracks</p>
+                            <p className="text-[#888890] text-sm mt-1">{artist.track_count} tracks</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : (
                     <div className="glass-card-dark p-12 text-center border-dashed border-2">
-                      <Search size={48} className="mx-auto mb-4 text-slate-500" />
+                      <Search size={48} className="mx-auto mb-4 text-[#55555E]" />
                       <h3 className="text-white text-xl font-semibold mb-2">No results found</h3>
-                      <p className="text-slate-400">Try searching for a different song, artist, or album.</p>
+                      <p className="text-[#888890]">Try searching for a different song, artist, or album.</p>
                     </div>
                   )}
                 </div>
@@ -1207,12 +1207,12 @@ const ResonanceApp = () => {
                 <h2 className="text-2xl font-semibold text-white">Browse all</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {[
-                    { title: "Pop", color: "from-pink-500 to-rose-500" },
-                    { title: "Hip-Hop", color: "from-orange-500 to-red-500" },
-                    { title: "Rock", color: "from-purple-500 to-indigo-500" },
-                    { title: "Jazz", color: "from-blue-500 to-cyan-500" },
-                    { title: "Classical", color: "from-green-500 to-emerald-500" },
-                    { title: "Electronic", color: "from-yellow-500 to-orange-500" }
+                    { title: "Pop", color: "from-[#CC2020] to-[#881616]" },
+                    { title: "Hip-Hop", color: "from-[#C49A28] to-[#CC2020]" },
+                    { title: "Rock", color: "from-[#888890] to-[#55555E]" },
+                    { title: "Jazz", color: "from-[#3A3A44] to-[#888890]" },
+                    { title: "Classical", color: "from-[#8B6B1A] to-[#C49A28]" },
+                    { title: "Electronic", color: "from-[#C49A28] to-[#8B6B1A]" }
                   ].map((genre, idx) => (
                     <div key={idx} className={`overflow-hidden rounded-3xl bg-gradient-to-br ${genre.color} shadow-xl shadow-black/30 transition hover:shadow-2xl hover:-translate-y-1 p-5 h-28 flex items-end cursor-pointer group glass-card`}>
                       <h3 className="text-white font-semibold text-lg group-hover:scale-105 transition-transform">{genre.title}</h3>
@@ -1242,12 +1242,12 @@ const ResonanceApp = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-4xl font-semibold text-white">Your Library</h1>
-              <p className="text-slate-500 mt-2">{libraryTracks.length} songs in your collection</p>
+              <p className="text-[#55555E] mt-2">{libraryTracks.length} songs in your collection</p>
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={() => setSelectedPlaylist(null)}
-                className="glass-button-dark rounded-full px-5 py-3 text-slate-300 hover:text-white"
+                className="glass-button-dark rounded-full px-5 py-3 text-[#AAAAAE] hover:text-white"
               >
                 <Music size={16} className="mr-2" />
                 All tracks
@@ -1263,7 +1263,7 @@ const ResonanceApp = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-slate-400 hover:text-white"
+                  className="text-[#888890] hover:text-white"
                   onClick={() => {
                     const name = prompt('Enter playlist name:');
                     if (name) createPlaylist(name);
@@ -1283,11 +1283,11 @@ const ResonanceApp = () => {
                     }}
                     className="group cursor-pointer overflow-hidden glass-card-dark shadow-xl hover:-translate-y-2 hover:shadow-2xl transition-all p-4 rounded-3xl"
                   >
-                    <div className="flex items-center justify-center h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-3">
+                    <div className="flex items-center justify-center h-32 bg-gradient-to-br from-[#C49A28] to-[#8B6B1A] rounded-2xl mb-3">
                       <ListMusic size={48} className="text-white/80" />
                     </div>
-                    <h3 className="text-white font-semibold truncate">{playlist.name}</h3>
-                    <p className="text-slate-400 text-sm">{playlist.track_count || 0} songs</p>
+                    <h3 className="text-[#EBEBED] font-semibold truncate">{playlist.name}</h3>
+                    <p className="text-[#888890] text-sm">{playlist.track_count || 0} songs</p>
                   </div>
                 ))}
               </div>
@@ -1303,11 +1303,11 @@ const ResonanceApp = () => {
               <LibraryTrackVirtualList tracks={displayTracks} />
             ) : (
               <div className="glass-card-dark p-12 text-center border-dashed border-2">
-                <Library size={48} className="mx-auto mb-4 text-slate-500" />
+                <Library size={48} className="mx-auto mb-4 text-[#55555E]" />
                 <h3 className="text-white text-xl font-semibold mb-2">Your library is empty</h3>
-                <p className="text-slate-400 mb-6">Upload tracks or add music from YouTube to build your collection.</p>
+                <p className="text-[#888890] mb-6">Upload tracks or add music from YouTube to build your collection.</p>
                 <div className="flex flex-wrap justify-center gap-3">
-                  <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Upload Music</Button>
+                  <Button onClick={() => setShowUploadDialog(true)} className="bg-gradient-to-r from-[#C49A28] to-[#8B6B1A] text-white hover:from-[#D4AA38] hover:to-[#9A7820] rounded-full px-5 py-3">Upload Music</Button>
                   <Button onClick={() => setShowYouTubeSearch(true)} className="glass-button-dark rounded-full px-5 py-3 text-white">Search YouTube</Button>
                 </div>
               </div>
@@ -1324,11 +1324,11 @@ const ResonanceApp = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-4xl font-semibold text-white">Favorites</h1>
-            <p className="text-slate-500 mt-2">{favorites.length} tracks you love.</p>
+            <p className="text-[#55555E] mt-2">{favorites.length} tracks you love.</p>
           </div>
           <Button
             variant="outline"
-            className="glass-button-dark rounded-full px-5 py-3 text-slate-300 hover:text-white"
+            className="glass-button-dark rounded-full px-5 py-3 text-[#AAAAAE] hover:text-white"
             onClick={() => setCurrentView('library')}
           >
             Browse Library
@@ -1344,7 +1344,7 @@ const ResonanceApp = () => {
                 className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
               >
                 <div className="flex items-center gap-4">
-                  <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-[rgba(200,200,204,0.15)] flex-shrink-0">
                     <img
                       src={track.artwork_url}
                       alt={track.title}
@@ -1353,11 +1353,11 @@ const ResonanceApp = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-white text-lg font-semibold truncate">{track.title}</h3>
-                    <p className="text-slate-400 truncate">{track.artist}</p>
-                    <p className="text-slate-500 text-sm mt-1">{track.album || 'Single'}</p>
+                    <p className="text-[#888890] truncate">{track.artist}</p>
+                    <p className="text-[#55555E] text-sm mt-1">{track.album || 'Single'}</p>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="text-slate-400 text-sm">{formatTime(track.duration || 0)}</span>
+                    <span className="text-[#888890] text-sm">{formatTime(track.duration || 0)}</span>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -1367,7 +1367,7 @@ const ResonanceApp = () => {
                       <Heart
                         size={18}
                         fill={isFavorite(track._id || track.id) ? 'currentColor' : 'none'}
-                        className={isFavorite(track._id || track.id) ? 'text-red-500' : ''}
+                        className={isFavorite(track._id || track.id) ? 'text-[#CC2020]' : ''}
                       />
                     </Button>
                   </div>
@@ -1377,11 +1377,11 @@ const ResonanceApp = () => {
           </div>
         ) : (
           <div className="glass-card-dark p-12 text-center border-dashed border-2">
-            <Heart size={48} className="mx-auto mb-4 text-slate-500" />
+            <Heart size={48} className="mx-auto mb-4 text-[#55555E]" />
             <h3 className="text-white text-xl font-semibold mb-2">No favorites yet</h3>
-            <p className="text-slate-400 mb-6">Tap the heart icon on any track to save it here.</p>
+            <p className="text-[#888890] mb-6">Tap the heart icon on any track to save it here.</p>
             <div className="flex flex-wrap justify-center gap-3">
-              <Button onClick={() => setCurrentView('library')} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-full px-5 py-3">Go to Library</Button>
+              <Button onClick={() => setCurrentView('library')} className="bg-gradient-to-r from-[#C49A28] to-[#8B6B1A] text-white hover:from-[#D4AA38] hover:to-[#9A7820] rounded-full px-5 py-3">Go to Library</Button>
             </div>
           </div>
         )}
@@ -1390,30 +1390,30 @@ const ResonanceApp = () => {
   );
 
   const CarModeView = () => (
-    <div className="fixed inset-0 z-50 bg-slate-950 text-white p-6 md:p-10 overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#030306] text-white p-6 md:p-10 overflow-hidden">
       <div className="h-full flex flex-col justify-between">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 uppercase tracking-[0.35em] text-sm">Car mode</p>
+              <p className="text-[#888890] uppercase tracking-[0.35em] text-sm">Car mode</p>
               <h1 className="text-4xl font-semibold">Drive Safe</h1>
             </div>
-            <button onClick={() => setCarMode(false)} className="rounded-full p-3 glass-button-dark text-slate-100 hover:glass-hover-dark">
+            <button onClick={() => setCarMode(false)} className="rounded-full p-3 glass-button-dark text-[#EBEBED] hover:glass-hover-dark">
               <X size={22} />
             </button>
           </div>
-          <div className="mx-auto w-full max-w-md overflow-hidden rounded-[2.5rem] shadow-2xl shadow-white/10 ring-1 ring-white/20">
+          <div className="mx-auto w-full max-w-md overflow-hidden rounded-[2.5rem] shadow-2xl shadow-white/10 ring-1 ring-[rgba(200,200,204,0.15)]">
             <img src={currentTrack.artwork_url} alt={currentTrack.title} className="w-full h-full object-cover" />
           </div>
           <div className="text-center space-y-3">
             <h2 className="text-3xl font-semibold text-white">{currentTrack.title}</h2>
-            <p className="text-slate-400 text-lg">{currentTrack.artist}</p>
+            <p className="text-[#888890] text-lg">{currentTrack.artist}</p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div className="glass-dark rounded-3xl p-6">
-            <div className="flex items-center justify-between text-slate-400 text-sm mb-4">
+            <div className="flex items-center justify-between text-[#888890] text-sm mb-4">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -1430,7 +1430,7 @@ const ResonanceApp = () => {
             <button onClick={playPrevious} className="rounded-full p-5 glass-button-dark">
               <SkipBack size={26} />
             </button>
-            <button onClick={togglePlayPause} className="rounded-full bg-white p-5 text-slate-950 shadow-xl shadow-white/20">
+            <button onClick={togglePlayPause} className="rounded-full bg-white p-5 text-[#030306] shadow-xl shadow-white/20">
               {isPlaying ? <Pause size={28} /> : <Play size={28} />}
             </button>
             <button onClick={playNext} className="rounded-full p-5 glass-button-dark">
@@ -1443,20 +1443,20 @@ const ResonanceApp = () => {
   );
 
   const FullPlayerView = () => (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-black via-slate-950 to-black text-white">
+    <div className="fixed inset-0 z-50 bg-[#030306] text-white">
       <div className="relative h-full flex flex-col">
-        <div className="flex items-center justify-between px-5 py-5 border-b border-white/15 glass-surface-dark">
+        <div className="flex items-center justify-between px-5 py-5 border-b border-[rgba(200,200,204,0.1)] glass-surface-dark">
           <button
             onClick={() => setIsFullPlayer(false)}
-            className="rounded-full p-3 text-slate-100 glass-button-dark hover:glass-hover-dark"
+            className="rounded-full p-3 text-[#EBEBED] glass-button-dark hover:glass-hover-dark"
           >
             <X size={22} />
           </button>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="text-slate-200 hover:text-white">
+            <Button variant="ghost" size="sm" className="text-[#C8C8CC] hover:text-white">
               <Shuffle size={18} />
             </Button>
-            <Button variant="ghost" size="sm" className="text-slate-200 hover:text-white">
+            <Button variant="ghost" size="sm" className="text-[#C8C8CC] hover:text-white">
               <MoreVertical size={18} />
             </Button>
           </div>
@@ -1464,14 +1464,14 @@ const ResonanceApp = () => {
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-8">
-            <div className="w-[88vw] max-w-[420px] rounded-[3rem] overflow-hidden shadow-2xl shadow-white/20 ring-1 ring-white/30">
+            <div className="w-[88vw] max-w-[420px] rounded-[3rem] overflow-hidden shadow-2xl shadow-white/20 ring-1 ring-[rgba(200,200,204,0.25)]">
               <img src={currentTrack.artwork_url} alt={currentTrack.title} className="w-full h-full object-cover" />
             </div>
 
             <div className="text-center space-y-4">
-              <p className="text-sm uppercase tracking-[0.35em] text-slate-400">Now playing</p>
+              <p className="text-sm uppercase tracking-[0.35em] text-[#888890]">Now playing</p>
               <h2 className="text-4xl font-semibold text-white">{currentTrack.title}</h2>
-              <p className="text-slate-400 text-lg">{currentTrack.artist}</p>
+              <p className="text-[#888890] text-lg">{currentTrack.artist}</p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -1496,7 +1496,7 @@ const ResonanceApp = () => {
             </div>
 
             <div className="w-full max-w-xl glass-dark rounded-2xl p-5">
-              <div className="flex items-center justify-between text-slate-400 text-sm mb-4">
+              <div className="flex items-center justify-between text-[#888890] text-sm mb-4">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
@@ -1512,7 +1512,7 @@ const ResonanceApp = () => {
             <div className="flex items-center justify-center gap-6">
               <button
                 onClick={() => setShuffle(!shuffle)}
-                className={`rounded-full p-4 glass-button-dark ${shuffle ? 'bg-emerald-500/30 text-emerald-300' : ''}`}
+                className={`rounded-full p-4 glass-button-dark ${shuffle ? 'bg-[rgba(196,154,40,0.15)] text-[#C49A28]' : ''}`}
               >
                 <Shuffle size={20} />
               </button>
@@ -1524,7 +1524,7 @@ const ResonanceApp = () => {
               </button>
               <button
                 onClick={togglePlayPause}
-                className="rounded-full bg-gradient-to-r from-white to-slate-100 p-5 shadow-xl shadow-white/20 text-slate-950 hover:scale-[1.02] transition font-bold"
+                className="rounded-full bg-gradient-to-r from-[#E8E8EC] to-[#C0C0C4] p-5 shadow-xl shadow-white/20 text-[#030306] hover:scale-[1.02] transition font-bold"
               >
                 {isPlaying ? <Pause size={28} /> : <Play size={28} />}
               </button>
@@ -1536,14 +1536,14 @@ const ResonanceApp = () => {
               </button>
               <button
                 onClick={toggleRepeat}
-                className={`rounded-full p-4 glass-button-dark ${repeat !== 'none' ? 'bg-emerald-500/30 text-emerald-300' : ''}`}
+                className={`rounded-full p-4 glass-button-dark ${repeat !== 'none' ? 'bg-[rgba(196,154,40,0.15)] text-[#C49A28]' : ''}`}
               >
                 <Repeat size={20} />
               </button>
             </div>
 
             <div className="w-full max-w-xl glass-dark rounded-2xl p-4 flex items-center gap-3">
-              <Volume2 size={18} className="text-slate-400" />
+              <Volume2 size={18} className="text-[#888890]" />
               <Slider
                 value={[volume]}
                 onValueChange={(value) => setVolume(value[0])}
@@ -1551,7 +1551,7 @@ const ResonanceApp = () => {
                 step={1}
                 className="flex-1"
               />
-              <span className="text-slate-400 text-sm">{volume}</span>
+              <span className="text-[#888890] text-sm">{volume}</span>
             </div>
           </div>
         </div>
@@ -1560,18 +1560,18 @@ const ResonanceApp = () => {
   );
 
   const BottomPlayerBar = () => (
-    <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-40 border-t border-white/15 glass-surface-dark p-3 md:p-4 shadow-2xl shadow-black/40">
+    <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-40 border-t border-[rgba(200,200,204,0.1)] glass-surface-dark p-3 md:p-4 shadow-2xl shadow-black/40">
       <div className="mx-auto flex max-w-7xl items-center gap-4">
         <div className="flex items-center gap-3 min-w-0 flex-1 md:flex-initial">
           <button
             onClick={() => setIsFullPlayer(true)}
-            className="h-12 w-12 md:h-16 md:w-16 rounded-xl md:rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-lg shadow-white/10 hover:ring-white/40 transition shrink-0"
+            className="h-12 w-12 md:h-16 md:w-16 rounded-xl md:rounded-2xl overflow-hidden ring-1 ring-[rgba(200,200,204,0.15)] shadow-lg shadow-white/10 hover:ring-[rgba(200,200,204,0.35)] transition shrink-0"
           >
             <img src={currentTrack.artwork_url} alt={currentTrack.title} className="h-full w-full object-cover" />
           </button>
           <div className="min-w-0">
-            <h3 className="text-sm md:text-base font-semibold text-white truncate">{currentTrack.title}</h3>
-            <p className="text-[10px] md:text-xs text-slate-500 truncate">{currentTrack.artist}</p>
+            <h3 className="text-sm md:text-base font-semibold text-[#EBEBED] truncate">{currentTrack.title}</h3>
+            <p className="text-[10px] md:text-xs text-[#55555E] truncate">{currentTrack.artist}</p>
           </div>
         </div>
 
@@ -1579,28 +1579,28 @@ const ResonanceApp = () => {
           <div className="flex items-center justify-center gap-4 mb-2">
             <button
               onClick={() => setShuffle(!shuffle)}
-              className={`rounded-full p-2 transition-colors ${shuffle ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}
+              className={`rounded-full p-2 transition-colors ${shuffle ? 'text-[#C49A28]' : 'text-[#888890] hover:text-white'}`}
             >
               <Shuffle size={16} />
             </button>
-            <button onClick={playPrevious} className="text-slate-200 hover:text-white transition-colors">
+            <button onClick={playPrevious} className="text-[#C8C8CC] hover:text-white transition-colors">
               <SkipBack size={18} />
             </button>
-            <button onClick={togglePlayPause} className="h-10 w-10 flex items-center justify-center rounded-full bg-white text-slate-950 hover:scale-105 transition active:scale-95 shadow-lg">
+            <button onClick={togglePlayPause} className="h-10 w-10 flex items-center justify-center rounded-full btn-play text-[#030306] hover:scale-105 transition active:scale-95 shadow-lg">
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </button>
-            <button onClick={playNext} className="text-slate-200 hover:text-white transition-colors">
+            <button onClick={playNext} className="text-[#C8C8CC] hover:text-white transition-colors">
               <SkipForward size={18} />
             </button>
             <button
               onClick={toggleRepeat}
-              className={`rounded-full p-2 transition-colors ${repeat !== 'none' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}
+              className={`rounded-full p-2 transition-colors ${repeat !== 'none' ? 'text-[#C49A28]' : 'text-[#888890] hover:text-white'}`}
             >
               <Repeat size={16} />
             </button>
           </div>
           <div className="flex items-center gap-3 w-full">
-            <span className="text-[10px] tabular-nums text-slate-500 w-10 text-right">{formatTime(currentTime)}</span>
+            <span className="text-[10px] tabular-nums text-[#55555E] w-10 text-right">{formatTime(currentTime)}</span>
             <Slider
               value={[duration > 0 ? (currentTime / duration) * 100 : 0]}
               onValueChange={(value) => seek((value[0] / 100) * duration)}
@@ -1608,7 +1608,7 @@ const ResonanceApp = () => {
               step={0.1}
               className="flex-1"
             />
-            <span className="text-[10px] tabular-nums text-slate-500 w-10">{formatTime(duration)}</span>
+            <span className="text-[10px] tabular-nums text-[#55555E] w-10">{formatTime(duration)}</span>
           </div>
         </div>
 
@@ -1622,7 +1622,7 @@ const ResonanceApp = () => {
             </button>
           </div>
           <div className="hidden lg:flex items-center gap-3">
-            <Volume2 size={18} className="text-slate-400" />
+            <Volume2 size={18} className="text-[#888890]" />
             <Slider
               value={[volume]}
               onValueChange={(value) => setVolume(value[0])}
@@ -1639,28 +1639,28 @@ const ResonanceApp = () => {
   return (
     <AppErrorBoundary>
       {globalLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#030306]/95 p-6">
           <div className="max-w-sm w-full glass-card-dark p-8 text-center">
-            <div className="mx-auto mb-5 h-14 w-14 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+            <div className="mx-auto mb-5 h-14 w-14 rounded-full border-4 border-[rgba(200,200,204,0.15)] border-t-white animate-spin" />
             <h2 className="text-xl font-semibold text-white mb-2">Starting Resonance</h2>
-            <p className="text-slate-400">Loading your library and playback services.</p>
+            <p className="text-[#888890]">Loading your library and playback services.</p>
           </div>
         </div>
       )}
       {globalError && !globalLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#030306]/95 p-6">
           <div className="max-w-md w-full glass-card-dark p-8 text-center">
             <h2 className="text-2xl font-semibold text-white mb-3">Connection Error</h2>
-            <p className="text-slate-400 mb-6">{globalError}</p>
+            <p className="text-[#888890] mb-6">{globalError}</p>
             <div className="flex justify-center gap-3">
-              <Button onClick={initializeApp} className="bg-white text-slate-950 rounded-full px-5 py-3">
+              <Button onClick={initializeApp} className="btn-play text-[#030306] rounded-full px-5 py-3">
                 Retry
               </Button>
             </div>
           </div>
         </div>
       )}
-      <div className="h-screen bg-slate-950 text-white flex overflow-hidden">
+      <div className="h-screen bg-[#030306] text-white flex overflow-hidden">
         {/* Sidebar - Desktop */}
         <div className="hidden lg:block">
           <Sidebar />
@@ -1668,7 +1668,7 @@ const ResonanceApp = () => {
 
         {/* Sidebar - Mobile (Sheet) */}
         <Sheet open={!sidebarCollapsed && typeof window !== 'undefined' && window.innerWidth < 1024} onOpenChange={(open) => setSidebarCollapsed(!open)}>
-          <SheetContent side="left" className="p-0 w-72 bg-slate-950 border-white/15">
+          <SheetContent side="left" className="p-0 w-72 bg-[#030306] border-[rgba(200,200,204,0.1)]">
             <Sidebar />
           </SheetContent>
         </Sheet>
@@ -1676,14 +1676,14 @@ const ResonanceApp = () => {
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 relative" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
           {/* Header */}
-          <div className="glass-surface-dark p-4 md:p-6 border-b border-white/15">
+          <div className="glass-surface-dark p-4 md:p-6 border-b border-[rgba(200,200,204,0.1)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 md:gap-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-[#888890] hover:text-white"
                 >
                   <Menu size={20} />
                 </Button>
@@ -1692,7 +1692,7 @@ const ResonanceApp = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => window.history.back()}
-                    className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                    className="text-[#888890] hover:text-white rounded-full w-8 h-8 p-0"
                   >
                     <ArrowLeft size={16} />
                   </Button>
@@ -1700,7 +1700,7 @@ const ResonanceApp = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => window.history.forward()}
-                    className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                    className="text-[#888890] hover:text-white rounded-full w-8 h-8 p-0"
                   >
                     <ChevronRight size={16} />
                   </Button>
@@ -1712,7 +1712,7 @@ const ResonanceApp = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className={`rounded-full w-8 h-8 p-0 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-700'}`}
+                    className={`rounded-full w-8 h-8 p-0 ${theme === 'dark' ? 'text-[#EBEBED]' : 'text-slate-700'}`}
                     title="Toggle dark/light theme"
                   >
                     {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -1721,7 +1721,7 @@ const ResonanceApp = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setNotificationsEnabled((prev) => !prev)}
-                    className={`rounded-full w-8 h-8 p-0 ${notificationsEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
+                    className={`rounded-full w-8 h-8 p-0 ${notificationsEnabled ? 'text-[#D4AA38]' : 'text-[#888890] hover:text-white'}`}
                     title="Smart notifications"
                   >
                     <Bell size={18} />
@@ -1730,7 +1730,7 @@ const ResonanceApp = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSyncEnabled((prev) => !prev)}
-                    className={`rounded-full w-8 h-8 p-0 ${syncEnabled ? 'text-emerald-300' : 'text-slate-400 hover:text-white'}`}
+                    className={`rounded-full w-8 h-8 p-0 ${syncEnabled ? 'text-[#D4AA38]' : 'text-[#888890] hover:text-white'}`}
                     title="Multi-device sync"
                   >
                     <Cloud size={18} />
@@ -1740,7 +1740,7 @@ const ResonanceApp = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setCarMode(!carMode)}
-                  className="text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  className="text-[#888890] hover:text-white rounded-full w-8 h-8 p-0"
                   title="Enter car mode"
                 >
                   <Music size={18} />
@@ -1749,16 +1749,16 @@ const ResonanceApp = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowKeyboardHelp(true)}
-                  className="hidden md:flex text-slate-400 hover:text-white rounded-full w-8 h-8 p-0"
+                  className="hidden md:flex text-[#888890] hover:text-white rounded-full w-8 h-8 p-0"
                   title="Keyboard shortcuts"
                 >
                   <HelpCircle size={18} />
                 </Button>
-                <Button className="glass-button rounded-full px-4 py-2 text-xs md:text-sm font-medium">
+                <Button className="btn-amber rounded-full px-4 py-2 text-xs md:text-sm font-medium cursor-pointer">
                   Upgrade
                 </Button>
-                <div className="w-8 h-8 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center ring-1 ring-white/20">
-                  <User size={16} className="text-slate-300" />
+                <div className="w-8 h-8 bg-[rgba(200,200,204,0.08)] rounded-full flex items-center justify-center ring-1 ring-[rgba(200,200,204,0.15)]">
+                  <User size={16} className="text-[#AAAAAE]" />
                 </div>
               </div>
             </div>
@@ -1773,7 +1773,7 @@ const ResonanceApp = () => {
           </div>
 
           {/* Bottom Navigation (Mobile Only) */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-surface-dark border-t border-white/15 px-6 py-3 flex items-center justify-between">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-surface-dark border-t border-[rgba(200,200,204,0.1)] px-6 py-3 flex items-center justify-between">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -1781,7 +1781,7 @@ const ResonanceApp = () => {
                   key={item.id}
                   onClick={() => setCurrentView(item.id)}
                   className={`flex flex-col items-center gap-1 transition-colors ${
-                    currentView === item.id ? 'text-white' : 'text-slate-500'
+                    currentView === item.id ? 'text-white' : 'text-[#55555E]'
                   }`}
                 >
                   <Icon size={20} />
@@ -1815,9 +1815,9 @@ const ResonanceApp = () => {
 
       {/* Home Settings Dialog */}
       <Dialog open={showHomeSettings} onOpenChange={setShowHomeSettings}>
-        <DialogContent className="glass-card border-white/20 max-w-md">
+        <DialogContent className="glass-card border-[rgba(200,200,204,0.15)] max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Customize Home Screen</DialogTitle>
+            <DialogTitle className="text-[#EBEBED]">Customize Home Screen</DialogTitle>
             <DialogDescription className="text-white/70">
               Toggle and reorder the sections that appear on your home screen.
             </DialogDescription>
@@ -1865,13 +1865,13 @@ const ResonanceApp = () => {
             <Button
               variant="outline"
               onClick={() => saveHomeModules(HOME_MODULE_DEFAULTS)}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-[rgba(200,200,204,0.15)] text-white hover:bg-white/10"
             >
               Reset to Default
             </Button>
             <Button
               onClick={() => setShowHomeSettings(false)}
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700"
+              className="bg-gradient-to-r from-[#C49A28] to-[#8B6B1A] text-white hover:from-[#D4AA38] hover:to-[#9A7820]"
             >
               Done
             </Button>
@@ -1881,7 +1881,7 @@ const ResonanceApp = () => {
 
       {/* Keyboard Shortcuts Dialog */}
       <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
-        <DialogContent className="glass-card border-white/20 max-w-md">
+        <DialogContent className="glass-card border-[rgba(200,200,204,0.15)] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Keyboard Shortcuts</DialogTitle>
             <DialogDescription className="text-white/70">
@@ -1900,8 +1900,8 @@ const ResonanceApp = () => {
               { key: 'M', action: 'Mute / Unmute' },
             ].map((shortcut, idx) => (
               <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
-                <span className="text-slate-400">{shortcut.action}</span>
-                <kbd className="px-3 py-1 bg-white/10 text-white text-sm rounded font-mono border border-white/20">
+                <span className="text-[#888890]">{shortcut.action}</span>
+                <kbd className="px-3 py-1 bg-white/10 text-white text-sm rounded font-mono border border-[rgba(200,200,204,0.15)]">
                   {shortcut.key}
                 </kbd>
               </div>
