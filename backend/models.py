@@ -20,29 +20,28 @@ class Track(BaseModel):
     title: str
     artist: str
     album: Optional[str] = None
-    duration: int  # in seconds
-    file_path: Optional[str] = None  # for local files
-    youtube_url: Optional[str] = None  # for YouTube tracks
+    genre: Optional[str] = None          # NEW — populated from ID3 tags
+    duration: int                         # seconds
+    file_path: Optional[str] = None
+    youtube_url: Optional[str] = None
     youtube_id: Optional[str] = None
     artwork_url: str
     upload_date: datetime = Field(default_factory=datetime.utcnow)
     play_count: int = 0
-    user_rating: Optional[int] = None  # 1-5 stars
+    user_rating: Optional[int] = None    # 1-5 stars
     source: TrackSource = TrackSource.LOCAL
-    file_size: Optional[int] = None  # in bytes
-    format: Optional[str] = None  # mp3, flac, etc.
+    file_size: Optional[int] = None      # bytes
+    format: Optional[str] = None
     mime_type: Optional[str] = None
 
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
 
 
 class TrackCreate(BaseModel):
     title: str
     artist: str
     album: Optional[str] = None
+    genre: Optional[str] = None
     duration: int
     youtube_url: Optional[str] = None
     youtube_id: Optional[str] = None
@@ -54,22 +53,22 @@ class TrackUpdate(BaseModel):
     title: Optional[str] = None
     artist: Optional[str] = None
     album: Optional[str] = None
+    genre: Optional[str] = None
     user_rating: Optional[int] = None
 
 
 class Playlist(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     name: str
-    tracks: List[str] = []  # List of track IDs
+    tracks: List[str] = []
     created_date: datetime = Field(default_factory=datetime.utcnow)
     updated_date: datetime = Field(default_factory=datetime.utcnow)
     artwork_url: Optional[str] = None
 
-    class Config:
-        populate_by_name = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = {
+        "populate_by_name": True,
+        "json_encoders": {datetime: lambda v: v.isoformat()},
+    }
 
 
 class PlaylistCreate(BaseModel):
@@ -91,39 +90,34 @@ class UserPreferences(BaseModel):
     volume: float = 1.0
     updated_date: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        populate_by_name = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = {
+        "populate_by_name": True,
+        "json_encoders": {datetime: lambda v: v.isoformat()},
+    }
 
 
 class FavoriteTrack(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     track_id: str
     added_date: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+
+    model_config = {
+        "populate_by_name": True,
+        "json_encoders": {datetime: lambda v: v.isoformat()},
+    }
 
 
 class SearchQuery(BaseModel):
     query: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+
+    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
 
 
 class SimilarTrackSuggestion(BaseModel):
     track_id: str
     similarity_score: float
-    reason: str  # "similar_artist", "similar_genre", "similar_tempo"
+    reason: str
 
 
 class YouTubeSearchResult(BaseModel):
@@ -139,8 +133,8 @@ class LibraryStats(BaseModel):
     total_tracks: int
     local_tracks: int
     youtube_tracks: int
-    total_duration: int  # in seconds
-    total_size: int  # in bytes
+    total_duration: int
+    total_size: int
     artists_count: int
     albums_count: int
     playlists_count: int
