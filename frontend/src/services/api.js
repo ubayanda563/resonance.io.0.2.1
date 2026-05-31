@@ -3,289 +3,163 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-console.log('BACKEND_URL:', BACKEND_URL);
-console.log('API URL:', API);
+// ── Axios instances per concern (fix #17: per-request timeouts) ───────────────
+const baseConfig = { baseURL: API };
 
-// Create axios instance with default config
-const apiClient = axios.create({
-  baseURL: API,
-  timeout: 30000, // 30 seconds for file uploads
-});
+const metaClient   = axios.create({ ...baseConfig, timeout: 8000  }); // search, metadata
+const uploadClient = axios.create({ ...baseConfig, timeout: 120000 }); // file uploads
+const streamClient = axios.create({ ...baseConfig, timeout: 15000 }); // stream URL lookups
 
-// Track API
-export const trackAPI = {
-  // Get all tracks
-  getTracks: async (params = {}) => {
-    const response = await apiClient.get('/tracks', { params });
-    return response.data;
-  },
+// ── AbortController registry (fix #16) ────────────────────────────────────────
+const controllers = {};
 
-  // Get recent tracks
-  getRecentTracks: async (limit = 20) => {
-    const response = await apiClient.get('/tracks/recent', { params: { limit } });
-    return response.data;
-  },
-
-  // Get track by ID
-  getTrack: async (trackId) => {
-    const response = await apiClient.get(`/tracks/${trackId}`);
-    return response.data;
-  },
-
-  // Upload track
-  uploadTrack: async (file, onProgress) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await apiClient.post('/tracks/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: (progressEvent) => {
-        if (onProgress) {
-          const progress = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          onProgress(progress);
-        }
-      },
-    });
-    return response.data;
-  },
-
-  // Update track
-  updateTrack: async (trackId, updateData) => {
-    const response = await apiClient.put(`/tracks/${trackId}`, updateData);
-    return response.data;
-  },
-
-  // Delete track
-  deleteTrack: async (trackId) => {
-    const response = await apiClient.delete(`/tracks/${trackId}`);
-    return response.data;
-  },
-
-  // Get stream URL for local track
-  getStreamUrl: (trackId) => {
-    return `${API}/tracks/${trackId}/stream`;
-  },
-
-  // Get library stats
-  getLibraryStats: async () => {
-    const response = await apiClient.get('/tracks/stats');
-    return response.data;
-  },
-};
-
-// YouTube API
-export const youtubeAPI = {
-  // Search YouTube
-  search: async (query, limit = 10) => {
-    const response = await apiClient.get('/youtube/search', {
-      params: { q: query, limit },
-    });
-    return response.data;
-  },
-
-  // Get track info
-  getTrackInfo: async (youtubeId) => {
-    const response = await apiClient.get(`/youtube/track/${youtubeId}`);
-    return response.data;
-  },
-
-  // Get stream URL
-  getStreamUrl: async (youtubeId) => {
-    const response = await apiClient.get(`/youtube/stream/${youtubeId}`);
-    return response.data.stream_url;
-  },
-
-  // Add YouTube track to library
-  addTrack: async (youtubeId) => {
-    const response = await apiClient.post('/youtube/add-track', null, {
-      params: { youtube_id: youtubeId },
-    });
-    return response.data;
-  },
-};
-
-// Playlist API
-export const playlistAPI = {
-  // Create playlist
-  createPlaylist: async (name, tracks = []) => {
-    const response = await apiClient.post('/playlists', {
-      name,
-      tracks,
-    });
-    return response.data;
-  },
-
-  // Get all playlists
-  getPlaylists: async () => {
-    const response = await apiClient.get('/playlists');
-    return response.data;
-  },
-
-  // Get playlist details
-  getPlaylist: async (playlistId) => {
-    const response = await apiClient.get(`/playlists/${playlistId}`);
-    return response.data;
-  },
-
-  // Update playlist
-  updatePlaylist: async (playlistId, updates) => {
-    const response = await apiClient.put(`/playlists/${playlistId}`, updates);
-    return response.data;
-  },
-
-  // Delete playlist
-  deletePlaylist: async (playlistId) => {
-    const response = await apiClient.delete(`/playlists/${playlistId}`);
-    return response.data;
-  },
-
-  // Add track to playlist
-  addTrackToPlaylist: async (playlistId, trackId) => {
-    const response = await apiClient.post(`/playlists/${playlistId}/tracks/${trackId}`);
-    return response.data;
-  },
-
-  // Remove track from playlist
-  removeTrackFromPlaylist: async (playlistId, trackId) => {
-    const response = await apiClient.delete(`/playlists/${playlistId}/tracks/${trackId}`);
-    return response.data;
-  },
-};
-
-// Favorites API
-export const favoritesAPI = {
-  // Get favorite tracks
-  getFavorites: async (limit = 50) => {
-    const response = await apiClient.get('/favorites', { params: { limit } });
-    return response.data;
-  },
-
-  // Add to favorites
-  addFavorite: async (trackId) => {
-    const response = await apiClient.post(`/favorites/${trackId}`);
-    return response.data;
-  },
-
-  // Remove from favorites
-  removeFavorite: async (trackId) => {
-    const response = await apiClient.delete(`/favorites/${trackId}`);
-    return response.data;
-  },
-
-  // Check if track is favorited
-  isFavorite: async (trackId) => {
-    const response = await apiClient.get(`/favorites/check/${trackId}`);
-    return response.data.is_favorite;
-  },
-};
-
-// Recommendations API
-export const recommendationsAPI = {
-  // Get similar tracks
-  getSimilarTracks: async (trackId, limit = 10) => {
-    const response = await apiClient.get(`/recommendations/similar/${trackId}`, {
-      params: { limit },
-    });
-    return response.data;
-  },
-
-  // Get artist discography
-  getArtistDiscography: async (artist, limit = 20) => {
-    const response = await apiClient.get(`/recommendations/artist/${artist}`, {
-      params: { limit },
-    });
-    return response.data;
-  },
-
-  // Get trending tracks
-  getTrending: async (limit = 20) => {
-    const response = await apiClient.get('/recommendations/trending', {
-      params: { limit },
-    });
-    return response.data;
-  },
-
-  // Get fresh/new tracks
-  getFresh: async (days = 7, limit = 20) => {
-    const response = await apiClient.get('/recommendations/fresh', {
-      params: { days, limit },
-    });
-    return response.data;
-  },
-
-  // Get genre tracks
-  getGenreTracks: async (genre, limit = 20) => {
-    const response = await apiClient.get(`/recommendations/genres/${genre}`, {
-      params: { limit },
-    });
-    return response.data;
-  },
-};
-
-// Search API
-export const searchAPI = {
-  // Search tracks
-  searchTracks: async (query, limit = 20) => {
-    const response = await apiClient.get('/search/tracks', {
-      params: { q: query, limit },
-    });
-    return response.data;
-  },
-
-  // Search artists
-  searchArtists: async (query) => {
-    const response = await apiClient.get('/search/artists', {
-      params: { q: query },
-    });
-    return response.data;
-  },
-
-  // Get search history
-  getSearchHistory: async (limit = 10) => {
-    const response = await apiClient.get('/search/history', {
-      params: { limit },
-    });
-    return response.data;
-  },
-
-  // Clear search history
-  clearSearchHistory: async () => {
-    const response = await apiClient.delete('/search/history');
-    return response.data;
-  },
-
-  // Delete search history item
-  deleteSearchHistoryItem: async (query) => {
-    const response = await apiClient.delete(`/search/history/${query}`);
-    return response.data;
-  },
-};
-
-// Helper function to handle API errors
-export const handleApiError = (error) => {
-  if (error.response) {
-    // Server responded with error status
-    return {
-      message: error.response.data.detail || 'An error occurred',
-      status: error.response.status,
-    };
-  } else if (error.request) {
-    // Request was made but no response received
-    return {
-      message: 'Network error - please check your connection',
-      status: 0,
-    };
-  } else {
-    // Something else happened
-    return {
-      message: error.message || 'An unexpected error occurred',
-      status: -1,
-    };
+const makeRequest = async (client, config, abortKey) => {
+  if (abortKey) {
+    if (controllers[abortKey]) controllers[abortKey].abort();
+    controllers[abortKey] = new AbortController();
+    config.signal = controllers[abortKey].signal;
+  }
+  try {
+    const res = await client.request(config);
+    if (abortKey) delete controllers[abortKey];
+    return res.data;
+  } catch (err) {
+    if (axios.isCancel(err)) return null; // cancelled — caller ignores null
+    throw err;
   }
 };
 
-export default apiClient;
+// ── Track API ─────────────────────────────────────────────────────────────────
+export const trackAPI = {
+  getTracks:       (params = {}) =>
+    makeRequest(metaClient, { method: 'get', url: '/tracks', params }),
+
+  getRecentTracks: (limit = 20) =>
+    makeRequest(metaClient, { method: 'get', url: '/tracks/recent', params: { limit } }),
+
+  getTrack:        (id) =>
+    makeRequest(metaClient, { method: 'get', url: `/tracks/${id}` }),
+
+  uploadTrack:     (file, onProgress) =>
+    uploadClient.post('/tracks/upload', (() => { const f = new FormData(); f.append('file', file); return f; })(), {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (e) => onProgress && onProgress(Math.round((e.loaded * 100) / e.total)),
+    }).then(r => r.data),
+
+  updateTrack:     (id, data) =>
+    makeRequest(metaClient, { method: 'put', url: `/tracks/${id}`, data }),
+
+  deleteTrack:     (id) =>
+    makeRequest(metaClient, { method: 'delete', url: `/tracks/${id}` }),
+
+  getStreamUrl:    (id) => `${API}/tracks/${id}/stream`,
+
+  getLibraryStats: () =>
+    makeRequest(metaClient, { method: 'get', url: '/tracks/stats' }),
+};
+
+// ── YouTube API ───────────────────────────────────────────────────────────────
+export const youtubeAPI = {
+  search: (query, limit = 10) =>
+    makeRequest(metaClient, { method: 'get', url: '/youtube/search', params: { q: query, limit } }, 'youtube-search'),
+
+  getTrackInfo: (id) =>
+    makeRequest(streamClient, { method: 'get', url: `/youtube/track/${id}` }),
+
+  getStreamUrl: async (id) => {
+    const data = await makeRequest(streamClient, { method: 'get', url: `/youtube/stream/${id}` });
+    return data?.stream_url ?? null;
+  },
+
+  addTrack: (youtubeId) =>
+    makeRequest(metaClient, { method: 'post', url: '/youtube/add-track', params: { youtube_id: youtubeId } }),
+
+  incrementPlayCount: (youtubeId) =>
+    makeRequest(metaClient, { method: 'post', url: `/youtube/play/${youtubeId}` }).catch(() => {}),
+};
+
+// ── Playlist API ──────────────────────────────────────────────────────────────
+export const playlistAPI = {
+  createPlaylist:        (name, tracks = []) =>
+    makeRequest(metaClient, { method: 'post', url: '/playlists', data: { name, tracks } }),
+
+  getPlaylists:          () =>
+    makeRequest(metaClient, { method: 'get', url: '/playlists' }),
+
+  getPlaylist:           (id) =>
+    makeRequest(metaClient, { method: 'get', url: `/playlists/${id}` }),
+
+  updatePlaylist:        (id, updates) =>
+    makeRequest(metaClient, { method: 'put', url: `/playlists/${id}`, data: updates }),
+
+  deletePlaylist:        (id) =>
+    makeRequest(metaClient, { method: 'delete', url: `/playlists/${id}` }),
+
+  addTrackToPlaylist:    (playlistId, trackId) =>
+    makeRequest(metaClient, { method: 'post', url: `/playlists/${playlistId}/tracks/${trackId}` }),
+
+  removeTrackFromPlaylist: (playlistId, trackId) =>
+    makeRequest(metaClient, { method: 'delete', url: `/playlists/${playlistId}/tracks/${trackId}` }),
+};
+
+// ── Favorites API ─────────────────────────────────────────────────────────────
+export const favoritesAPI = {
+  getFavorites:   (limit = 50) =>
+    makeRequest(metaClient, { method: 'get', url: '/favorites', params: { limit } }),
+
+  addFavorite:    (id) =>
+    makeRequest(metaClient, { method: 'post', url: `/favorites/${id}` }),
+
+  removeFavorite: (id) =>
+    makeRequest(metaClient, { method: 'delete', url: `/favorites/${id}` }),
+
+  isFavorite:     async (id) => {
+    const d = await makeRequest(metaClient, { method: 'get', url: `/favorites/check/${id}` });
+    return d?.is_favorite ?? false;
+  },
+};
+
+// ── Recommendations API ───────────────────────────────────────────────────────
+export const recommendationsAPI = {
+  getSimilarTracks:    (id, limit = 10) =>
+    makeRequest(metaClient, { method: 'get', url: `/recommendations/similar/${id}`, params: { limit } }),
+
+  getArtistDiscography: (artist, limit = 20) =>
+    makeRequest(metaClient, { method: 'get', url: `/recommendations/artist/${artist}`, params: { limit } }),
+
+  getTrending: (limit = 20) =>
+    makeRequest(metaClient, { method: 'get', url: '/recommendations/trending', params: { limit } }),
+
+  getFresh: (days = 7, limit = 20) =>
+    makeRequest(metaClient, { method: 'get', url: '/recommendations/fresh', params: { days, limit } }),
+
+  getGenreTracks: (genre, limit = 20) =>
+    makeRequest(metaClient, { method: 'get', url: `/recommendations/genres/${genre}`, params: { limit } }),
+};
+
+// ── Search API ────────────────────────────────────────────────────────────────
+export const searchAPI = {
+  searchTracks:  (query, limit = 20) =>
+    makeRequest(metaClient, { method: 'get', url: '/search/tracks', params: { q: query, limit } }, 'search-tracks'),
+
+  searchArtists: (query) =>
+    makeRequest(metaClient, { method: 'get', url: '/search/artists', params: { q: query } }, 'search-artists'),
+
+  getSearchHistory:      (limit = 10) =>
+    makeRequest(metaClient, { method: 'get', url: '/search/history', params: { limit } }),
+
+  clearSearchHistory:    () =>
+    makeRequest(metaClient, { method: 'delete', url: '/search/history' }),
+
+  deleteSearchHistoryItem: (query) =>
+    makeRequest(metaClient, { method: 'delete', url: `/search/history/${query}` }),
+};
+
+// ── Error helper ──────────────────────────────────────────────────────────────
+export const handleApiError = (err) => {
+  if (err?.response) return { message: err.response.data?.detail || 'An error occurred', status: err.response.status };
+  if (err?.request)  return { message: 'Network error — check your connection', status: 0 };
+  return { message: err?.message || 'Unexpected error', status: -1 };
+};
+
+export default metaClient;
