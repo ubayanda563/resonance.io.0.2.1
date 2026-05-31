@@ -1,80 +1,51 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { favoritesAPI } from '../services/api';
 
-const FavoritesContext = createContext();
-
-export const useFavoritesContext = () => {
-  const context = useContext(FavoritesContext);
-  if (!context) {
-    throw new Error('useFavoritesContext must be used within FavoritesProvider');
-  }
-  return context;
-};
+const FavoritesContext = createContext(null);
 
 export const FavoritesProvider = ({ children }) => {
-  const [favorites, setFavorites] = useState([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState(new Set());
 
-  // Load favorites on mount
   useEffect(() => {
-    loadFavorites();
+    favoritesAPI.getFavorites(500)
+      .then(tracks => {
+        if (tracks) setFavoriteIds(new Set(tracks.map(t => t.id || t._id)));
+      })
+      .catch(() => {});
   }, []);
 
-  const loadFavorites = useCallback(async () => {
-    setLoadingFavorites(true);
-    try {
-      const data = await favoritesAPI.getFavorites(500);
-      setFavorites(data);
-      const ids = new Set(data.map(t => t._id || t.id));
-      setFavoriteIds(ids);
-    } catch (err) {
-      console.error('Error loading favorites:', err);
-    } finally {
-      setLoadingFavorites(false);
-    }
-  }, []);
+  const isFavorite = useCallback((id) => favoriteIds.has(id), [favoriteIds]);
 
-  const toggleFavorite = useCallback(async (trackId) => {
-    const wasFavorite = favoriteIds.has(trackId);
+  const toggleFavorite = useCallback(async (id) => {
+    const wasFav = favoriteIds.has(id);
+    // Optimistic update
+    setFavoriteIds(prev => {
+      const next = new Set(prev);
+      wasFav ? next.delete(id) : next.add(id);
+      return next;
+    });
     try {
-      if (wasFavorite) {
-        await favoritesAPI.removeFavorite(trackId);
-        const newIds = new Set(favoriteIds);
-        newIds.delete(trackId);
-        setFavoriteIds(newIds);
-        setFavorites((prev) => prev.filter(t => (t._id || t.id) !== trackId));
-      } else {
-        await favoritesAPI.addFavorite(trackId);
-        const newIds = new Set(favoriteIds);
-        newIds.add(trackId);
-        setFavoriteIds(newIds);
-        // Refresh full list to get the new track object
-        await loadFavorites();
-      }
-      return !wasFavorite;
-    } catch (err) {
-      console.error('Error toggling favorite:', err);
-      throw err;
+      if (wasFav) await favoritesAPI.removeFavorite(id);
+      else        await favoritesAPI.addFavorite(id);
+    } catch {
+      // Rollback
+      setFavoriteIds(prev => {
+        const next = new Set(prev);
+        wasFav ? next.add(id) : next.delete(id);
+        return next;
+      });
     }
-  }, [favoriteIds, loadFavorites]);
-
-  const isFavorite = useCallback((trackId) => {
-    return favoriteIds.has(trackId);
   }, [favoriteIds]);
 
-  const value = {
-    favorites,
-    favoriteIds,
-    loadingFavorites,
-    loadFavorites,
-    toggleFavorite,
-    isFavorite,
-  };
-
   return (
-    <FavoritesContext.Provider value={value}>
+    <FavoritesContext.Provider value={{ favoriteIds, isFavorite, toggleFavorite }}>
       {children}
     </FavoritesContext.Provider>
   );
+};
+
+export const useFavoritesContext = () => {
+  const ctx = useContext(FavoritesContext);
+  if (!ctx) throw new Error('useFavoritesContext must be inside FavoritesProvider');
+  return ctx;
 };
