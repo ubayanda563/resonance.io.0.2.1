@@ -14,10 +14,6 @@ Resonance is architected for modular distribution, cross-platform playback consi
 
 ## 🌐 Ecosystem Architecture
 
----
-
-## 🌐 Ecosystem Architecture
-
 The Resonance platform is broken down into highly specialized sub-systems to maintain separation of concerns, rapid testability, and isolated deployment vectors:
 
 
