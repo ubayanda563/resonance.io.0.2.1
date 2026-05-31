@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Home, Search, BookOpen, Heart, ListMusic, Youtube, ChevronUp } from 'lucide-react';
+import { Home, Search, BookOpen, Heart, ListMusic, Youtube, Compass } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 
 const NAV = [
@@ -9,6 +9,7 @@ const NAV = [
   { id: 'favorites', label: 'Favorites', icon: Heart      },
   { id: 'playlists', label: 'Playlists', icon: ListMusic  },
   { id: 'youtube',   label: 'YouTube',   icon: Youtube    },
+  { id: 'discover',  label: 'Discover',  icon: Compass    },
 ];
 
 const Sidebar = memo(({ view, onNavigate }) => {
