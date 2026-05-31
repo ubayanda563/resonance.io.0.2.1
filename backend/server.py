@@ -15,7 +15,7 @@ import sys
 backend_dir = Path(__file__).parent
 sys.path.insert(0, str(backend_dir))
 
-from routes import tracks, youtube, artwork, playlists, favorites, recommendations, search
+from routes import tracks, youtube, artwork, playlists, favorites, recommendations, search, enrichment
 from database import create_indexes
 from models import Track
 
@@ -120,6 +120,7 @@ api_router.include_router(playlists.router)
 api_router.include_router(favorites.router)
 api_router.include_router(recommendations.router)
 api_router.include_router(search.router)
+api_router.include_router(enrichment.router)
 
 @api_router.get("/")
 async def root():
