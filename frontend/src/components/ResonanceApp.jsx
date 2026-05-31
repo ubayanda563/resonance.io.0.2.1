@@ -9,7 +9,8 @@ import BottomPlayerBar from './player/BottomPlayerBar';
 const HomeView      = lazy(() => import('./views/HomeView'));
 const SearchView    = lazy(() => import('./views/SearchView'));
 const LibraryView   = lazy(() => import('./views/LibraryView'));
-const PlaylistsView = lazy(() => import('./views/PlaylistsView'));
+const PlaylistsView  = lazy(() => import('./views/PlaylistsView'));
+const DiscoverView   = lazy(() => import('./views/DiscoverView'));
 
 const ViewLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -41,6 +42,7 @@ const AppShell = () => {
                 {React.createElement(lazy(() => import('./views/FavoritesView')))}
               </Suspense>
             )}
+            {view === 'discover' && <DiscoverView />}
             {view === 'youtube' && (
               <Suspense fallback={<ViewLoader />}>
                 {React.createElement(lazy(() => import('./views/YouTubeView')))}
