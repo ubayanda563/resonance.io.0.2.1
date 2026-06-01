@@ -52,6 +52,7 @@ import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Switch } from './ui/switch';
+import { Sheet, SheetContent } from './ui/sheet';
 
 const HOME_MODULE_DEFAULTS = [
   { id: 'nowPlaying', label: 'Now Playing', enabled: true },

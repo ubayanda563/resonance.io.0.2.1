@@ -1,0 +1,145 @@
+┌─────────────────────────────────────────────────────────────┐
+│                 🎵 RESONANCE QUICK REFERENCE                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ SYSTEM REQUIREMENTS                                         │
+├─────────────────────────────────────────────────────────────┤
+│ ✓ Python 3.8+      │ Run: python --version                 │
+│ ✓ Node.js 16+      │ Run: node --version                   │
+│ ✓ npm or yarn      │ Run: npm --version                    │
+│ ✓ 2GB+ RAM                                                  │
+│ ✓ 500MB disk space                                          │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ QUICK START (3 STEPS)                                       │
+├─────────────────────────────────────────────────────────────┤
+│ 1. bash setup.sh              (or setup.bat on Windows)     │
+│ 2. cd backend && source venv/bin/activate                   │
+│    python server.py                                         │
+│ 3. cd frontend && npm start                                 │
+│                                                             │
+│ Then open: http://localhost:3000                           │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ PORTS & URLS                                                │
+├─────────────────────────────────────────────────────────────┤
+│ Frontend:   http://localhost:3000                           │
+│ Backend:    http://localhost:8001                           │
+│ API Docs:   http://localhost:8001/docs                      │
+│ MongoDB:    localhost:27017 (optional)                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ KEYBOARD SHORTCUTS                                          │
+├─────────────────────────────────────────────────────────────┤
+│ Space       Play/Pause              R           Repeat      │
+│ → or N      Next track              S           Shuffle     │
+│ ← or P      Previous track          ?           Help        │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ IMPORTANT DIRECTORIES                                       │
+├─────────────────────────────────────────────────────────────┤
+│ backend/              Python FastAPI server                 │
+│ frontend/             React web application                 │
+│ backend/routes/       API endpoints                         │
+│ backend/services/     External API integrations             │
+│ backend/uploads/      Uploaded audio files                  │
+│ frontend/src/         React components & logic              │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ ENVIRONMENT VARIABLES                                       │
+├─────────────────────────────────────────────────────────────┤
+│ backend/.env                                                │
+│   MONGO_URL=mongodb://localhost:27017                       │
+│   DB_NAME=resonance                                         │
+│   ALLOWED_ORIGINS=http://localhost:3000                     │
+│                                                             │
+│ frontend/.env                                               │
+│   REACT_APP_BACKEND_URL=http://localhost:8001               │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ COMMON COMMANDS                                             │
+├─────────────────────────────────────────────────────────────┤
+│ health check     │ python healthcheck.py                    │
+│ full reset       │ bash setup.sh                            │
+│ docker start     │ docker-compose up --build                │
+│ docker stop      │ docker-compose down                      │
+│ backend tests    │ cd backend && python -m pytest           │
+│ api docs         │ curl http://localhost:8001/docs          │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ FEATURES                                                    │
+├─────────────────────────────────────────────────────────────┤
+│ 🎵 Upload & play audio files                                │
+│ 📋 Create playlists                                         │
+│ ❤️ Mark favorite tracks                                     │
+│ 🔍 Search library                                           │
+│ 🎬 YouTube integration                                      │
+│ 🔄 AI recommendations                                       │
+│ ⌨️ Keyboard shortcuts                                       │
+│ 📱 Responsive design                                        │
+│ 🔌 Works offline                                            │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                             │
+├─────────────────────────────────────────────────────────────┤
+│ Issue                 Solution                              │
+│ ─────────────────────────────────────────────────────────── │
+│ Port in use          See TROUBLESHOOTING.md                 │
+│ Module not found     source venv/bin/activate               │
+│ CORS error           Check .env files                       │
+│ Frontend blank       Check browser console (F12)            │
+│ Upload fails         Check backend/uploads/audio/           │
+│ Search empty         Upload tracks first                    │
+│ Backend not respond  Run healthcheck.py                     │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ DOCUMENTATION                                               │
+├─────────────────────────────────────────────────────────────┤
+│ GETTING_STARTED.md       Complete beginner guide (START!)   │
+│ QUICK_START.md           Quick reference                    │
+│ TROUBLESHOOTING.md       Fix common issues                  │
+│ DEVELOPER_GUIDE.md       For developers                     │
+│ FEATURES_GUIDE.md        All features explained             │
+│ SETUP_COMPLETE.md        Setup summary                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ API ENDPOINTS                                               │
+├─────────────────────────────────────────────────────────────┤
+│ GET  /api/health              System health                 │
+│ GET  /api/tracks              List all tracks               │
+│ POST /api/tracks/upload       Upload audio file             │
+│ GET  /api/playlists           List playlists                │
+│ GET  /api/favorites           List favorite tracks          │
+│ GET  /api/search?q=...        Search tracks                 │
+│ GET  /api/recommendations     Get suggestions               │
+│ GET  /api/youtube/search      YouTube search                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ FIRST TIME SETUP CHECKLIST                                  │
+├─────────────────────────────────────────────────────────────┤
+│ ☐ Check Python version: python --version                    │
+│ ☐ Check Node version: node --version                        │
+│ ☐ Run setup: bash setup.sh (or setup.bat)                   │
+│ ☐ Start backend: cd backend && python server.py             │
+│ ☐ Start frontend: cd frontend && npm start                  │
+│ ☐ Open http://localhost:3000                                │
+│ ☐ Upload a test music file                                  │
+│ ☐ Try playing music                                         │
+│ ☐ Check health: python healthcheck.py                       │
+└─────────────────────────────────────────────────────────────┘
+
+For more help, read GETTING_STARTED.md or TROUBLESHOOTING.md
+
+Last updated: 2026-06-01
