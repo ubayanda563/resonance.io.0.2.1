@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from pathlib import Path
 from urllib.parse import unquote
-from datetime import datetime
+from datetime import datetime, UTC
 import os
 import logging
 import asyncio
@@ -55,7 +55,7 @@ async def lifespan(app: FastAPI):
                     "artist": "Young Thug",
                     "duration": 180,
                     "artwork_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
-                    "upload_date": datetime.utcnow(),
+                    "upload_date": datetime.now(UTC),
                     "play_count": 0,
                     "source": "local",
                 },
@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
                     "artist": "Young Thug",
                     "duration": 200,
                     "artwork_url": "https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?w=400&h=400&fit=crop",
-                    "upload_date": datetime.utcnow(),
+                    "upload_date": datetime.now(UTC),
                     "play_count": 0,
                     "source": "local",
                 },
