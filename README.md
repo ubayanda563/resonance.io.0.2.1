@@ -1,21 +1,7 @@
 # Resonance.io (v0.2.1)
 
 <div align="center">
-  <svg viewBox="0 0 110 110" width="110" height="110" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 20px;">
-    <defs>
-      <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#C49A28" stop-opacity="0.12"/>
-        <stop offset="100%" stop-color="#C49A28" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <circle cx="55" cy="55" r="54" fill="url(#bgGlow)"/>
-    <circle cx="55" cy="55" r="50" fill="none" stroke="rgba(196,154,40,0.18)" stroke-width="10"/>
-    <circle cx="55" cy="55" r="42" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="5" stroke-linecap="round"/>
-    <path d="M 97 55 A 42 42 0 1 0 91.37 34" fill="none" stroke="#EBEBED" stroke-width="5" stroke-linecap="round"/>
-    <path d="M 97 55 A 42 42 0 1 0 91.37 34" fill="none" stroke="#C49A28" stroke-width="5" stroke-linecap="round"/>
-    <polygon points="91.37,34  84.5,31.5  88.8,39.2" fill="#EBEBED"/>
-    <circle cx="18.5" cy="76" r="4.5" fill="#CC2020"/>
-  </svg>
+  <img src="./logo.svg" alt="Resonance Logo" width="110" height="110" style="margin-bottom: 20px;">
 
   <h1>RESONANCE</h1>
   <p><strong>Your music · your mood</strong></p>
