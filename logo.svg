@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="500" height="500">
+  <!-- Black rounded square background -->
+  <rect width="100" height="100" rx="20" ry="20" fill="#000000"/>
+
+  <!-- Circular refresh/reload arc: nearly full circle, gap at top-right, arrow at end -->
+  <!-- Center: 50,50  Radius: 22 -->
+  <!-- Start angle: ~300deg (top-right gap start), sweep almost 300deg clockwise -->
+  <!-- Start point at ~300deg: x=50+22*cos(300)=50+11=61, y=50+22*sin(300)=50-19=31 -->
+  <!-- End point at ~350deg:   x=50+22*cos(350)=50+21.7=71.7, y=50+22*sin(350)=50-3.8=46.2 -->
+
+  <!-- Arc: starts near top, goes counter-clockwise almost full circle -->
+  <path
+    d="M 50 28
+       A 22 22 0 1 0 71.5 43"
+    fill="none"
+    stroke="white"
+    stroke-width="6.5"
+    stroke-linecap="round"
+  />
+
+  <!-- Arrow head at end of arc (pointing roughly downward-right) -->
+  <!-- end of arc ~(71.5, 43), tangent direction is roughly down -->
+  <polyline
+    points="63.5,38 71.5,43 67,52"
+    fill="none"
+    stroke="white"
+    stroke-width="6.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
