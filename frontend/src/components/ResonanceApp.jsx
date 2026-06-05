@@ -52,6 +52,7 @@ import { Card, CardContent } from './ui/card';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Sheet, SheetContent } from './ui/sheet';
 import { Switch } from './ui/switch';
 
 const HOME_MODULE_DEFAULTS = [
@@ -662,7 +663,7 @@ const ResonanceApp = () => {
 
   const openHomeSettings = () => setShowHomeSettings(true);
 
-  const changeView = (view) => {
+  const handleViewChange = (view) => {
     if (view === currentView) return;
     const currentIndex = VIEW_ORDER.indexOf(currentView);
     const nextIndex = VIEW_ORDER.indexOf(view);
@@ -685,9 +686,9 @@ const ResonanceApp = () => {
     if (Math.abs(diff) > 60) {
       const currentIndex = VIEW_ORDER.indexOf(currentView);
       if (diff < 0 && currentIndex < VIEW_ORDER.length - 1) {
-        changeView(VIEW_ORDER[currentIndex + 1]);
+        handleViewChange(VIEW_ORDER[currentIndex + 1]);
       } else if (diff > 0 && currentIndex > 0) {
-        changeView(VIEW_ORDER[currentIndex - 1]);
+        handleViewChange(VIEW_ORDER[currentIndex - 1]);
       }
     }
     setSwipeStartX(null);
@@ -1915,7 +1916,6 @@ const ResonanceApp = () => {
       <Toaster />
         </div>
     </AppErrorBoundary>
-  </>
   );
 };
 
