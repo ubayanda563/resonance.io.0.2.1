@@ -1,3 +1,4 @@
+import { BlobMesh, LiquidSidebarNav, LiquidBottomNav, LiquidSurface, ThemeToggle } from './LiquidNav';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Play,
@@ -52,7 +53,6 @@ import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Switch } from './ui/switch';
-import { Sheet, SheetContent } from './ui/sheet';
 
 const HOME_MODULE_DEFAULTS = [
   { id: 'nowPlaying', label: 'Now Playing', enabled: true },
@@ -100,6 +100,13 @@ class AppErrorBoundary extends React.Component {
 }
 
 const ResonanceApp = () => {
+  // Initialise dark mode (default)
+  React.useEffect(() => {
+    if (!document.documentElement.getAttribute('data-theme')) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }, []);
+
   const [currentView, setCurrentView] = useState('home');
   const [transitionDirection, setTransitionDirection] = useState('fade');
   const [swipeStartX, setSwipeStartX] = useState(null);
@@ -572,7 +579,7 @@ const ResonanceApp = () => {
             <div
               key={track.id || track._id || range.start + idx}
               onClick={() => handleTrackSelect(track)}
-              className="group flex flex-col gap-3 overflow-hidden glass-card-dark p-3 md:p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
+              className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
             >
               <div className="flex items-center gap-4">
                 <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
@@ -762,7 +769,7 @@ const ResonanceApp = () => {
   ];
 
   const Sidebar = () => (
-    <div className={`${sidebarCollapsed ? 'w-20' : 'w-64'} h-full glass-surface-dark border-r border-white/15 text-slate-100 hidden lg:flex flex-col transition-all duration-300`}> 
+    <div className={`${sidebarCollapsed ? 'w-20' : 'w-72'} h-full glass-surface-dark border-r border-white/15 text-slate-100 flex flex-col transition-all duration-300`}> 
       <div className="p-4 md:p-6 border-b border-white/10 glass-surface-dark">
         <div className="flex items-center gap-3">
           {githubAvatar && (
@@ -847,7 +854,7 @@ const ResonanceApp = () => {
 
       <button
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="hidden lg:flex absolute top-1/2 -right-4 z-10 w-9 h-9 glass-button-dark hover:glass-hover-dark rounded-full items-center justify-center text-slate-300 hover:text-white"
+        className="absolute top-1/2 -right-4 z-10 w-9 h-9 glass-button-dark hover:glass-hover-dark rounded-full flex items-center justify-center text-slate-300 hover:text-white"
       >
         {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
@@ -860,7 +867,7 @@ const ResonanceApp = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
             <p className="text-sm uppercase tracking-[0.4em] text-slate-400">Good evening</p>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[#EBEBED] tracking-tight">Your music, your mood.</h1>
+            <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-tight">Your music, your mood.</h1>
             <p className="max-w-2xl text-slate-400">Stream your library, continue listening, and manage playlists with a premium player feel across every view.</p>
           </div>
           <Button variant="outline" onClick={openHomeSettings} className="text-slate-300 hover:text-white rounded-full px-5 py-3">
@@ -870,7 +877,7 @@ const ResonanceApp = () => {
 
         {homeModules.find((module) => module.id === 'nowPlaying')?.enabled && currentTrack && (
           <div className="glass-card-dark overflow-hidden shadow-2xl">
-            <div className="grid gap-4 md:grid-cols-[240px_1fr] items-center p-4 md:p-6">
+            <div className="grid gap-6 md:grid-cols-[280px_1fr] items-center p-6">
               <div className="rounded-[2rem] overflow-hidden shadow-xl shadow-white/10 ring-1 ring-white/20">
                 <img src={currentTrack.artwork_url} alt={currentTrack.title} className="w-full h-full object-cover" />
               </div>
@@ -917,13 +924,13 @@ const ResonanceApp = () => {
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {Array.from({ length: 8 }).map((_, idx) => (
                   <div key={idx} className="h-56 rounded-3xl glass-dark-sm animate-pulse" />
                 ))}
               </div>
             ) : recentTracks.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {recentTracks.slice(0, 10).map((track, idx) => (
                   <TrackCard
                     key={idx}
@@ -1127,13 +1134,13 @@ const ResonanceApp = () => {
               </div>
 
               {isSearching_hook ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {Array.from({ length: 8 }).map((_, idx) => (
                     <div key={idx} className="h-56 rounded-3xl glass-dark-sm animate-pulse" />
                   ))}
                 </div>
               ) : searchResults.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {searchResults.map((track, idx) => (
                     <TrackCard
                       key={idx}
@@ -1188,7 +1195,7 @@ const ResonanceApp = () => {
                       <h2 className="text-2xl font-semibold text-white">Trending Now</h2>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {trendingTracks.slice(0, 10).map((track, idx) => (
                       <TrackCard
                         key={idx}
@@ -1274,7 +1281,7 @@ const ResonanceApp = () => {
                   New
                 </Button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {playlists.map((playlist) => (
                   <div
                     key={playlist.id}
@@ -1342,7 +1349,7 @@ const ResonanceApp = () => {
               <div
                 key={idx}
                 onClick={() => handleTrackSelect(track)}
-                className="group flex flex-col gap-3 overflow-hidden glass-card-dark p-3 md:p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
+                className="group flex flex-col gap-4 overflow-hidden glass-card-dark p-4 hover:-translate-y-1 hover:shadow-2xl cursor-pointer transition-all"
               >
                 <div className="flex items-center gap-4">
                   <div className="relative h-20 w-20 overflow-hidden rounded-2xl ring-1 ring-white/20 flex-shrink-0">
@@ -1766,7 +1773,7 @@ const ResonanceApp = () => {
           </div>
 
           {/* Content Area */}
-          <div className={`flex-1 flex flex-col min-w-0 view-transition-${transitionDirection} ${currentTrack ? 'pb-44 md:pb-32 lg:pb-24' : 'pb-28 md:pb-20 lg:pb-0'}`}>
+          <div className={`flex-1 flex flex-col min-w-0 view-transition-${transitionDirection} ${currentTrack ? 'pb-32 md:pb-24' : 'pb-20 lg:pb-0'}`}>
             {currentView === 'home' && <HomeView />}
             {currentView === 'search' && <SearchView />}
             {currentView === 'library' && <LibraryView />}
@@ -1774,99 +1781,19 @@ const ResonanceApp = () => {
           </div>
 
           {/* Bottom Navigation (Mobile Only) */}
-          {/* ── Mobile Bottom Navigation ── */}
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-surface-dark border-t border-[rgba(200,200,204,0.1)]"
-               style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-            {/* Mini player strip — visible when track is playing */}
-            {currentTrack && (
-              <div
-                className="flex items-center gap-3 px-4 pt-3 pb-2 cursor-pointer border-b border-[rgba(200,200,204,0.07)]"
-                onClick={() => setIsFullPlayer(true)}
-              >
-                <img
-                  src={currentTrack.artwork_url}
-                  alt={currentTrack.title}
-                  className="w-9 h-9 rounded-xl object-cover flex-shrink-0 ring-1 ring-[rgba(200,200,204,0.15)]"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[#EBEBED] text-xs font-semibold truncate">{currentTrack.title}</p>
-                  <p className="text-[#55555E] text-[10px] truncate">{currentTrack.artist}</p>
-                </div>
-                {/* Mini EQ animation */}
-                {isPlaying && (
-                  <div className="flex items-end gap-[2px] h-4 flex-shrink-0 mr-1">
-                    {[3,5,4,6,3].map((h,i) => (
-                      <div key={i}
-                        className="w-[3px] rounded-full bg-[#C49A28]"
-                        style={{
-                          height: h*3,
-                          animation: `eq-pulse 0.9s ease-in-out infinite`,
-                          animationDelay: `${i*120}ms`
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-                <button
-                  className="w-9 h-9 btn-play rounded-full flex items-center justify-center flex-shrink-0 text-[#030306]"
-                  onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}
-                >
-                  {isPlaying
-                    ? <Pause size={15} fill="currentColor" />
-                    : <Play  size={15} fill="currentColor" className="ml-0.5" />
-                  }
-                </button>
-                <button
-                  className="w-9 h-9 glass-button-dark rounded-full flex items-center justify-center flex-shrink-0 text-[#888890]"
-                  onClick={(e) => { e.stopPropagation(); playNext(); }}
-                >
-                  <SkipForward size={15} />
-                </button>
-              </div>
-            )}
-            {/* Tab bar */}
-            <div className="flex items-center justify-around px-2 py-2">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const active = currentView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setCurrentView(item.id)}
-                    className="flex flex-col items-center gap-1 min-w-[52px] py-1 transition-all"
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    <div className={`w-10 h-10 flex items-center justify-center rounded-2xl transition-all ${
-                      active
-                        ? 'bg-[rgba(196,154,40,0.15)] text-[#C49A28]'
-                        : 'text-[#3D3D45] hover:text-[#888890]'
-                    }`}>
-                      <Icon size={20} />
-                    </div>
-                    <span className={`text-[9px] font-medium tracking-wide transition-colors ${
-                      active ? 'text-[#C49A28]' : 'text-[#3D3D45]'
-                    }`}>
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
-              {/* Upload shortcut */}
-              <button
-                onClick={() => setShowUploadDialog(true)}
-                className="flex flex-col items-center gap-1 min-w-[52px] py-1 transition-all"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
-              >
-                <div className="w-10 h-10 flex items-center justify-center rounded-2xl text-[#3D3D45] hover:text-[#888890] transition-all">
-                  <Plus size={20} />
-                </div>
-                <span className="text-[9px] font-medium tracking-wide text-[#3D3D45]">Upload</span>
-              </button>
-            </div>
-          </nav>
+          <LiquidBottomNav
+            items={navigationItems}
+            activeId={currentView}
+            onNavigate={handleViewChange}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            onPlayerTap={() => setIsFullPlayer(true)}
+            onPlayPause={togglePlayPause}
+            onSkip={playNext}
+          />
 
           {/* Bottom Player Bar */}
-          {currentTrack && <BottomPlayerBar className="hidden lg:flex" />}
+          {currentTrack && <BottomPlayerBar />}
         </div>
 
       {/* Full Player Overlay */}
@@ -1988,6 +1915,7 @@ const ResonanceApp = () => {
       <Toaster />
         </div>
     </AppErrorBoundary>
+  </>
   );
 };
 
