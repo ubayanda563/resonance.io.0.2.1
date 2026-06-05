@@ -1,7 +1,7 @@
 # Resonance.io (v0.2.1)
 
 <div align="center">
-  <img src="./logo.svg" alt="Resonance Logo" width="110" height="110" style="margin-bottom: 20px;">
+  <img src="./resonance-logo.png" alt="Resonance Logo" width="110" height="110" style="margin-bottom: 20px;">
 
   <h1>RESONANCE</h1>
   <p><strong>Your music · your mood</strong></p>
