@@ -133,8 +133,26 @@ async def health():
 app.include_router(api_router)
 
 
+def _find_free_port(start_port: int, max_tries: int = 10) -> int:
+    import socket
+
+    for port in range(start_port, start_port + max_tries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                sock.bind(("0.0.0.0", port))
+                return port
+            except OSError:
+                continue
+    return start_port
+
+
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("BACKEND_PORT", os.environ.get("PORT", 8001)))
+    requested_port = int(os.environ.get("BACKEND_PORT", os.environ.get("PORT", 8001)))
+    if "BACKEND_PORT" in os.environ or "PORT" in os.environ:
+        port = requested_port
+    else:
+        port = _find_free_port(requested_port)
     logger.info(f"Starting server on port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
