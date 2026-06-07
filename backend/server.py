@@ -133,14 +133,14 @@ async def health():
 app.include_router(api_router)
 
 
-def _find_free_port(start_port: int, max_tries: int = 10) -> int:
+def _find_free_port(start_port: int, host: str = "127.0.0.1", max_tries: int = 10) -> int:
     import socket
 
     for port in range(start_port, start_port + max_tries):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
-                sock.bind(("0.0.0.0", port))
+                sock.bind((host, port))
                 return port
             except OSError:
                 continue
@@ -150,9 +150,12 @@ def _find_free_port(start_port: int, max_tries: int = 10) -> int:
 if __name__ == "__main__":
     import uvicorn
     requested_port = int(os.environ.get("BACKEND_PORT", os.environ.get("PORT", 8001)))
-    if "BACKEND_PORT" in os.environ or "PORT" in os.environ:
+    host = os.environ.get("BACKEND_HOST", "127.0.0.1")
+    # If the user explicitly set networking environment variables, respect them;
+    # otherwise attempt to find a free port bound to localhost for safety.
+    if "BACKEND_PORT" in os.environ or "PORT" in os.environ or "BACKEND_HOST" in os.environ:
         port = requested_port
     else:
-        port = _find_free_port(requested_port)
-    logger.info(f"Starting server on port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+        port = _find_free_port(requested_port, host=host)
+    logger.info(f"Starting server on {host}:{port}")
+    uvicorn.run(app, host=host, port=port)
