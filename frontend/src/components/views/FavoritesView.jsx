@@ -27,7 +27,7 @@ const FavoritesView = memo(() => {
       <div className="flex items-center gap-3">
         <Heart size={22} className="text-[#CC2020]" fill="currentColor" />
         <h1 className="text-2xl font-semibold text-[#EBEBED]">Favorites</h1>
-        {!loading && <span className="text-sm text-[#3D3D45]">· {tracks.length} tracks</span>}
+        {!loading && <span className="text-sm text-[#3D3D45]">· {Array.isArray(tracks) ? tracks.length : 0} tracks</span>}
       </div>
 
       {loading && (
@@ -36,7 +36,7 @@ const FavoritesView = memo(() => {
         </div>
       )}
 
-      {!loading && tracks.length === 0 && (
+      {!loading && (!Array.isArray(tracks) || tracks.length === 0) && (
         <div className="text-center py-20">
           <Heart size={40} className="mx-auto text-[#3D3D45] mb-3" />
           <p className="text-[#888890]">No favorites yet</p>
@@ -44,16 +44,16 @@ const FavoritesView = memo(() => {
         </div>
       )}
 
-      {!loading && tracks.length > 0 && (
+      {!loading && Array.isArray(tracks) && tracks.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {tracks.map(track => (
             <TrackCard
               key={track.id || track._id}
               track={track}
               onPlay={(t) => playTrack(t, tracks)}
-              onFavorite={toggleFavorite}
-              onAddToQueue={addToQueue}
-              isFavorite={isFavorite}
+              onFavorite={typeof toggleFavorite === 'function' ? toggleFavorite : () => {}}
+              onAddToQueue={typeof addToQueue === 'function' ? addToQueue : () => {}}
+              isFavorite={typeof isFavorite === 'function' ? isFavorite : () => false}
               formatTime={formatTime}
             />
           ))}
