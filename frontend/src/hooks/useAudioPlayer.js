@@ -40,9 +40,15 @@ export const useAudioPlayer = (trackAPI, youtubeAPI) => {
   useEffect(() => {
     const on  = () => setIsOnline(true);
     const off = () => setIsOnline(false);
+    const offlineDetected = () => setIsOnline(false);
     window.addEventListener('online',  on);
     window.addEventListener('offline', off);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+    window.addEventListener('resonance-offline-detected', offlineDetected);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+      window.removeEventListener('resonance-offline-detected', offlineDetected);
+    };
   }, []);
 
   // ── Create audio element ────────────────────────────────────────────────────

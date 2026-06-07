@@ -158,7 +158,17 @@ export const searchAPI = {
 // ── Error helper ──────────────────────────────────────────────────────────────
 export const handleApiError = (err) => {
   if (err?.response) return { message: err.response.data?.detail || 'An error occurred', status: err.response.status };
-  if (err?.request)  return { message: 'Network error — check your connection', status: 0 };
+  if (err?.request)  {
+    // Network error — notify app to switch to offline mode
+    try {
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('resonance-offline-detected'));
+      }
+    } catch (e) {
+      // ignore dispatch failures
+    }
+    return { message: 'Network error — check your connection', status: 0 };
+  }
   return { message: err?.message || 'Unexpected error', status: -1 };
 };
 
