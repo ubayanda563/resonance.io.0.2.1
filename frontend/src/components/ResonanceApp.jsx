@@ -1,5 +1,5 @@
 import { BlobMesh, LiquidSidebarNav, LiquidBottomNav, LiquidSurface, ThemeToggle } from './LiquidNav';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Play,
   Pause,
@@ -163,8 +163,12 @@ const ResonanceApp = () => {
     return HOME_MODULE_DEFAULTS;
   });
   const { toast } = useToast();
-  const { favorites, isFavorite, toggleFavorite } = useFavoritesContext();
+  const { favoriteIds, isFavorite, toggleFavorite } = useFavoritesContext();
   const { playlists, createPlaylist } = usePlaylistContext();
+  const favoriteTracks = useMemo(
+    () => libraryTracks.filter((track) => favoriteIds.has(track._id || track.id)),
+    [libraryTracks, favoriteIds]
+  );
   const {
     searchResults,
     searchArtistResults,
@@ -696,7 +700,7 @@ const ResonanceApp = () => {
 
   const getQueueForCurrentView = () => {
     if (currentView === 'search' && searchResults.length > 0) return searchResults;
-    if (currentView === 'favorites' && favorites.length > 0) return favorites;
+    if (currentView === 'favorites' && favoriteTracks.length > 0) return favoriteTracks;
     if (currentView === 'library' && libraryTracks.length > 0) return libraryTracks;
     return recentTracks;
   };
@@ -1333,7 +1337,7 @@ const ResonanceApp = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-4xl font-semibold text-white">Favorites</h1>
-            <p className="text-slate-500 mt-2">{favorites.length} tracks you love.</p>
+            <p className="text-slate-500 mt-2">{favoriteTracks.length} tracks you love.</p>
           </div>
           <Button
             variant="outline"
@@ -1344,9 +1348,9 @@ const ResonanceApp = () => {
           </Button>
         </div>
 
-        {favorites.length > 0 ? (
+        {favoriteTracks.length > 0 ? (
           <div className="grid gap-4">
-            {favorites.map((track, idx) => (
+            {favoriteTracks.map((track, idx) => (
               <div
                 key={idx}
                 onClick={() => handleTrackSelect(track)}
