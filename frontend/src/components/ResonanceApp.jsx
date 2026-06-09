@@ -1,5 +1,4 @@
-import { BlobMesh, LiquidSidebarNav, LiquidBottomNav, LiquidSurface, ThemeToggle } from './LiquidNav';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Play,
   Pause,
@@ -36,7 +35,7 @@ import {
   Moon,
   Bell,
   Cloud,
-} from 'lucide-react';
+, MessageCircle } from 'lucide-react';
 import { trackAPI, handleApiError, recommendationsAPI, playlistAPI, youtubeAPI } from '../services/api';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 import { useSearch } from '../hooks/useSearch';
@@ -52,7 +51,6 @@ import { Card, CardContent } from './ui/card';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Sheet, SheetContent } from './ui/sheet';
 import { Switch } from './ui/switch';
 
 const HOME_MODULE_DEFAULTS = [
@@ -101,13 +99,6 @@ class AppErrorBoundary extends React.Component {
 }
 
 const ResonanceApp = () => {
-  // Initialise dark mode (default)
-  React.useEffect(() => {
-    if (!document.documentElement.getAttribute('data-theme')) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-  }, []);
-
   const [currentView, setCurrentView] = useState('home');
   const [transitionDirection, setTransitionDirection] = useState('fade');
   const [swipeStartX, setSwipeStartX] = useState(null);
@@ -163,12 +154,8 @@ const ResonanceApp = () => {
     return HOME_MODULE_DEFAULTS;
   });
   const { toast } = useToast();
-  const { favoriteIds, isFavorite, toggleFavorite } = useFavoritesContext();
+  const { favorites, isFavorite, toggleFavorite } = useFavoritesContext();
   const { playlists, createPlaylist } = usePlaylistContext();
-  const favoriteTracks = useMemo(
-    () => libraryTracks.filter((track) => favoriteIds.has(track._id || track.id)),
-    [libraryTracks, favoriteIds]
-  );
   const {
     searchResults,
     searchArtistResults,
@@ -667,7 +654,7 @@ const ResonanceApp = () => {
 
   const openHomeSettings = () => setShowHomeSettings(true);
 
-  const handleViewChange = (view) => {
+  const changeView = (view) => {
     if (view === currentView) return;
     const currentIndex = VIEW_ORDER.indexOf(currentView);
     const nextIndex = VIEW_ORDER.indexOf(view);
@@ -690,9 +677,9 @@ const ResonanceApp = () => {
     if (Math.abs(diff) > 60) {
       const currentIndex = VIEW_ORDER.indexOf(currentView);
       if (diff < 0 && currentIndex < VIEW_ORDER.length - 1) {
-        handleViewChange(VIEW_ORDER[currentIndex + 1]);
+        changeView(VIEW_ORDER[currentIndex + 1]);
       } else if (diff > 0 && currentIndex > 0) {
-        handleViewChange(VIEW_ORDER[currentIndex - 1]);
+        changeView(VIEW_ORDER[currentIndex - 1]);
       }
     }
     setSwipeStartX(null);
@@ -700,7 +687,7 @@ const ResonanceApp = () => {
 
   const getQueueForCurrentView = () => {
     if (currentView === 'search' && searchResults.length > 0) return searchResults;
-    if (currentView === 'favorites' && favoriteTracks.length > 0) return favoriteTracks;
+    if (currentView === 'favorites' && favorites.length > 0) return favorites;
     if (currentView === 'library' && libraryTracks.length > 0) return libraryTracks;
     return recentTracks;
   };
@@ -1337,7 +1324,7 @@ const ResonanceApp = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-4xl font-semibold text-white">Favorites</h1>
-            <p className="text-slate-500 mt-2">{favoriteTracks.length} tracks you love.</p>
+            <p className="text-slate-500 mt-2">{favorites.length} tracks you love.</p>
           </div>
           <Button
             variant="outline"
@@ -1348,9 +1335,9 @@ const ResonanceApp = () => {
           </Button>
         </div>
 
-        {favoriteTracks.length > 0 ? (
+        {favorites.length > 0 ? (
           <div className="grid gap-4">
-            {favoriteTracks.map((track, idx) => (
+            {favorites.map((track, idx) => (
               <div
                 key={idx}
                 onClick={() => handleTrackSelect(track)}
@@ -1786,16 +1773,23 @@ const ResonanceApp = () => {
           </div>
 
           {/* Bottom Navigation (Mobile Only) */}
-          <LiquidBottomNav
-            items={navigationItems}
-            activeId={currentView}
-            onNavigate={handleViewChange}
-            currentTrack={currentTrack}
-            isPlaying={isPlaying}
-            onPlayerTap={() => setIsFullPlayer(true)}
-            onPlayPause={togglePlayPause}
-            onSkip={playNext}
-          />
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-surface-dark border-t border-white/15 px-6 py-3 flex items-center justify-between">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentView(item.id)}
+                  className={`flex flex-col items-center gap-1 transition-colors ${
+                    currentView === item.id ? 'text-white' : 'text-slate-500'
+                  }`}
+                >
+                  <Icon size={20} />
+                  <span className="text-[10px] font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* Bottom Player Bar */}
           {currentTrack && <BottomPlayerBar />}
