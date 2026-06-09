@@ -21,22 +21,30 @@ export const BlobMesh = memo(() => (
 BlobMesh.displayName = 'BlobMesh';
 
 /* ── Theme toggle button ─────────────────────────────────────────── */
-export const ThemeToggle = memo(({ size = 20 }) => {
+export const ThemeToggle = memo(({ size = 20, className = '', onToggle }) => {
   const toggle = useCallback(() => {
+    if (typeof onToggle === 'function') {
+      onToggle();
+      return;
+    }
+
     const root = document.documentElement;
     const isDark = root.getAttribute('data-theme') !== 'light';
-    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  }, []);
+    const theme = isDark ? 'light' : 'dark';
+    root.setAttribute('data-theme', theme);
+    localStorage.setItem('resonanceTheme', theme);
+  }, [onToggle]);
 
   return (
     <button
       onClick={toggle}
-      className="theme-toggle w-11 h-11"
+      className={`theme-btn ${className}`.trim()}
       aria-label="Toggle light/dark mode"
+      type="button"
     >
-      <div className="theme-icon-wrap" style={{ width: size, height: size }}>
+      <div className="theme-icon-wrapper" style={{ width: size, height: size }}>
         {/* Sun */}
-        <svg className="icon-sun" width={size} height={size} viewBox="0 0 24 24"
+        <svg className="sun" width={size} height={size} viewBox="0 0 24 24"
           fill="none" stroke="currentColor" strokeWidth="2.2"
           strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="5"/>
@@ -50,7 +58,7 @@ export const ThemeToggle = memo(({ size = 20 }) => {
           <line x1="18.36" y1="5.64"  x2="19.78" y2="4.22"/>
         </svg>
         {/* Moon */}
-        <svg className="icon-moon" width={size} height={size} viewBox="0 0 24 24"
+        <svg className="moon" width={size} height={size} viewBox="0 0 24 24"
           fill="none" stroke="currentColor" strokeWidth="2.2"
           strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>

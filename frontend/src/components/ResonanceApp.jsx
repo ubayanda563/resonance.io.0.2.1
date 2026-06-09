@@ -1673,9 +1673,23 @@ const ResonanceApp = () => {
           </div>
         </div>
       )}
-      <div className="h-screen bg-slate-950 text-white flex overflow-hidden">
+      <div className="min-h-screen w-full bg-black relative text-white flex overflow-hidden">
+        <BlobMesh />
+
+        {/* Ember Glow Background */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 50% 100%, rgba(255, 69, 0, 0.6) 0%, transparent 60%),
+              radial-gradient(circle at 50% 100%, rgba(255, 140, 0, 0.4) 0%, transparent 70%),
+              radial-gradient(circle at 50% 100%, rgba(255, 215, 0, 0.3) 0%, transparent 80%)
+            `,
+          }}
+        />
+        
         {/* Sidebar - Desktop */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block relative z-10">
           <Sidebar />
         </div>
 
@@ -1687,7 +1701,7 @@ const ResonanceApp = () => {
         </Sheet>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 relative" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
+        <div className="flex-1 flex flex-col min-w-0 relative z-10" onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
           {/* Header */}
           <div className="glass-surface-dark p-4 md:p-6 border-b border-white/15">
             <div className="flex items-center justify-between">
@@ -1721,15 +1735,11 @@ const ResonanceApp = () => {
               </div>
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="hidden md:flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className={`rounded-full w-8 h-8 p-0 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-700'}`}
-                    title="Toggle dark/light theme"
-                  >
-                    {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                  </Button>
+                  <ThemeToggle
+                    size={18}
+                    className="hidden md:flex"
+                    onToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
